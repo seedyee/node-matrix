@@ -1,5 +1,6 @@
 const path = require('path')
-module.exports.getVersion = () => {
+
+exports.getVersion = function() {
   let version
   try {
     version = require(path.join(__dirname, '../../package.json')).version

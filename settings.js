@@ -19,12 +19,16 @@
 //var fs = require("fs");
 const path = require('path')
 
+const { getVersion } = require('./red/utils')
+
 process.title = 'node-red'
 process.env.NODE_RED_HOME = __dirname
 const uiPort = process.env.UI_PORT || 1880
 const uiHost = process.env.UI_HOST || '127.0.0.1'
 const userDir = path.resolve(process.env.USER_DIR || path.join(process.env.HOME, './.node-red'))
+const version = getVersion()
 
+const settingsFile = path.join(__dirname, './settings.js')
 const coreNodesDir = path.join(__dirname, './nodes')
 const userNodesDir = path.join(userDir, './nodes')
 const nodesDirList = [coreNodesDir, userNodesDir]
@@ -44,7 +48,8 @@ module.exports = {
   //nodesDir: '/home/nol/.node-red/nodes',
   coreNodesDir,
   nodesDirList,
-
+  version,
+  settingsFile,
   // Retry time in milliseconds for MQTT connections
   mqttReconnectTime: 15000,
 

@@ -5,34 +5,13 @@ const express = require('express')
 const crypto = require('crypto')
 const bcrypt = require('bcryptjs')
 const path = require('path')
-const fs = require('fs-extra')
+
 const RED = require('./red/red.js')
+const settings = require('./settings')
 
-const { getVersion } = require('./red/utils')
-
+const listenpath = `${settings.https ? 'https' : 'http'}://${settings.uiHost}:${settings.uiPort}${settings.httpEditorRoot}`
 let server
-let listenpath
-let settings
 const app = express()
-const settingsFile = path.join(__dirname, './settings.js')
-
-try {
-  settings = require(settingsFile)
-} catch(err) {
-  console.log('Error loading settings file: ${settingsFile}')
-  if (err.code == 'MODULE_NOT_FOUND') {
-    if (err.toString().indexOf(settingsFile) === -1) {
-      console.log(err.toString())
-    }
-  } else {
-    console.log(err)
-  }
-  process.exit()
-}
-
-settings.version = getVersion()
-settings.settingsFile = settingsFile
-listenpath = `${settings.https ? 'https' : 'http'}://${settings.uiHost}:${settings.uiPort}${settings.httpEditorRoot}`
 
 if (settings.https) {
   server = https.createServer(settings.https, app)
@@ -40,32 +19,7 @@ if (settings.https) {
   server = http.createServer(app)
 }
 server.setMaxListeners(0)
-
-function formatRoot(root) {
-  if (root[0] != '/') {
-    root = '/' + root
-  }
-  if (root.slice(-1) != '/') {
-    root = root + '/'
-  }
-  return root
-}
-
-settings.disableEditor = settings.disableEditor
-settings.httpEditorRoot = formatRoot(settings.httpEditorRoot)
-settings.httpNodeRoot = formatRoot(settings.httpNodeRoot)
-
-try {
-  RED.init(server,settings)
-} catch(err) {
-  if (err.code == 'not_built') {
-    console.log('Node-RED has not been built. See README.md for details')
-  } else {
-    console.log('Failed to start server:')
-    console.log(err.stack || err)
-  }
-  process.exit(1)
-}
+RED.init(server, settings)
 
 function basicAuthMiddleware(user, pass) {
   var basicAuth = require('basic-auth')
