@@ -27,7 +27,6 @@ function init(runtime) {
   settings = runtime.settings
   events = runtime.events
   log = runtime.log
-  i18n = runtime.i18n
 }
 
 function getLocalFile(file) {
@@ -91,9 +90,6 @@ function getLocalNodeFiles(dir) {
 function getNodeFiles() {
   // Find all of the nodes to load
   const { coreNodesDir, nodesDirList, userDir } = settings
-  const defaultLocalesPath = path.join(coreNodesDir, 'core', 'locales')
-  i18n.registerMessageCatalog('node-red', defaultLocalesPath, 'messages.json')
-
   // map and then flatten
   const nodeFiles = nodesDirList.map(getLocalNodeFiles).reduce((a, b) => a.concat(b), [])
   const nodeList = {

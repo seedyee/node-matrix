@@ -73,7 +73,7 @@ function loadNodeConfig(nodeMeta) {
         let mainContent = ''
         let helpContent = {}
         let index = 0
-        const lang = runtime.i18n.defaultLang
+        const lang = 'en-US'
         while ((match = regExp.exec(content)) !== null) {
           mainContent += content.substring(index, regExp.lastIndex - match[1].length)
           index = regExp.lastIndex
@@ -208,7 +208,7 @@ function getNodeHelp(node, lang) {
     if (help) {
       node.help[lang] = help
     } else {
-      node.help[lang] = node.help[runtime.i18n.defaultLang]
+      node.help[lang] = 'en-US'
     }
   }
   return node.help[lang]

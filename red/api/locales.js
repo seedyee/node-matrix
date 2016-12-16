@@ -7,8 +7,6 @@ const nodesText = require(nodesLocaleFile)
 
 module.exports = function(req, res) {
   const namespace = req.params[0]
-  console.log(req.params)
-  console.log(namespace)
   if (namespace === 'node-red') {
     res.json(nodesText)
   } else if (namespace === 'editor') {

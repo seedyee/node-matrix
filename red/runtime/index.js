@@ -2,7 +2,6 @@ const when = require('when')
 const redNodes = require('./nodes')
 const storage = require('./storage')
 const log = require('./log')
-const i18n = require('../i18n')
 const events = require('./events')
 const settings = require('./settings')
 const path = require('path')
@@ -20,8 +19,7 @@ function init() {
 }
 
 function start() {
-  return i18n.init()
-             .then(function() { return storage.init(runtime)})
+  return  storage.init(runtime)
              .then(function() { return settings.load(storage)})
              .then(function() {
                console.log('\n\n==================== Welcome ============================\n\n')
@@ -56,7 +54,6 @@ var runtime = module.exports = {
   stop,
   version,
   log,
-  i18n,
   settings,
   storage,
   events,

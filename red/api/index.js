@@ -18,7 +18,6 @@ const comms = require('./comms')
 const auth = require('./auth')
 const needsPermission = auth.needsPermission
 
-let i18n
 let log
 let adminApp
 let nodeApp
@@ -48,7 +47,6 @@ function init(_server, _runtime) {
   server = _server
   runtime = _runtime
   const settings = runtime.settings
-  i18n = runtime.i18n
   log = runtime.log
   nodeApp = express()
   comms.init(server, runtime)
@@ -133,9 +131,7 @@ function init(_server, _runtime) {
 }
 
 function start() {
-  return i18n.registerMessageCatalog('editor', path.join(__dirname, 'locales'), 'editor.json').then(function(){
-    comms.start()
-  })
+  comms.start()
 }
 
 function stop() {
