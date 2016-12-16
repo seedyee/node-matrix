@@ -1,5 +1,4 @@
 const registry = require('./registry')
-const credentials = require('./credentials')
 const flows = require('./flows')
 const flowUtil = require('./flows/util')
 const context = require('./context')
@@ -34,7 +33,6 @@ function createNode(node, def) {
 
 function init(runtime) {
   settings = runtime.settings
-  credentials.init(runtime)
   flows.init(runtime)
   registry.init(runtime)
   context.init(runtime.settings)
