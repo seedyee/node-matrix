@@ -1,12 +1,13 @@
 const http = require('http')
 const https = require('https')
-const util = require('util')
 const express = require('express')
 const crypto = require('crypto')
 const bcrypt = require('bcryptjs')
 const path = require('path')
+const { basicAuthMiddleware } = require('./red/utils/basicAuthMiddleware')
 
 const Dot = require('./red/red.js')
+
 const settings = require('./settings')
 
 const listenpath = `${settings.https ? 'https' : 'http'}://${settings.uiHost}:${settings.uiPort}${settings.httpEditorRoot}`
@@ -21,38 +22,12 @@ if (settings.https) {
 server.setMaxListeners(0)
 const dot = new Dot(server)
 
-function basicAuthMiddleware(user, pass) {
-  var basicAuth = require('basic-auth')
-  var checkPassword
-  if (pass.length == '32') {
-    // Assume its a legacy md5 password
-    checkPassword = function(p) {
-      return crypto.createHash('md5').update(p,'utf8').digest('hex') === pass
-    }
-  } else {
-    checkPassword = function(p) {
-      return bcrypt.compareSync(p, pass)
-    }
-  }
-
-  return function(req, res, next) {
-    if (req.method === 'OPTIONS') {
-      return next()
-    }
-    const requestUser = basicAuth(req)
-    if (!requestUser || requestUser.name !== user || !checkPassword(requestUser.pass)) {
-      res.set('WWW-Authenticate', 'Basic realm=Authorization Required')
-      return res.sendStatus(401)
-    }
-    next()
-  }
-}
 
 app.use(settings.httpEditorRoot, dot.adminApp)
 if (settings.httpNodeAuth) {
   app.use(settings.httpNodeRoot,basicAuthMiddleware(settings.httpNodeAuth.user,settings.httpNodeAuth.pass))
 }
-app.use(settings.httpNodeRoot, dot.httpNode)
+app.use(settings.httpNodeRoot, dot.nodeApp)
 
 if (settings.httpStatic) {
   if (settings.httpStaticAuth) {
@@ -81,8 +56,8 @@ dot.start().then(function() {
 })
 
 process.on('uncaughtException', function(err) {
-  util.log('[red] Uncaught Exception:')
-  util.log(err.stack || err)
+  console.log('[red] Uncaught Exception:')
+  console.log(err.stack || err)
   process.exit(1)
 })
 
