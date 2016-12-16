@@ -10,55 +10,79 @@ let adminApp = null
 let server = null
 let apiEnabled = false
 
-function checkBuild() {
-  const editorFile = path.join(__dirname,'../public/red/red.min.js')
-  try {
-    const stats = fs.statSync(editorFile)
-  } catch(err) {
-    const e = new Error('[error]: Node-RED not built')
-    e.code = 'not_built'
-    throw e
-  }
-}
-
-module.exports = {
-  init: function(httpServer) {
-    runtime.init(api)
+module.exports = class Dot {
+  constructor(httpServer) {
+    runtime.init()
     api.init(httpServer, runtime)
     apiEnabled = true
-    adminApp = runtime.adminApi.adminApp
-    nodeApp = runtime.adminApi.nodeApp
-    server = runtime.adminApi.server
-    return
-  },
 
-  start: function() {
+    const { adminApp, nodeApp, server, comms, library, auth } = api
+    this.adminApp = adminApp
+    this.nodeApp = nodeApp
+    this.server = server
+    this.comms = comms
+    this.library = library
+    this.auth = auth
+
+    const { nodes, log, settings, util, version } = runtime
+    this.log = log
+    this.settings = settings
+    this.version = version
+    this.util = util
+    this.nodes
+  }
+  start() {
     return runtime.start().then(function() {
       if (apiEnabled) {
         return api.start()
       }
     })
-  },
-
-  stop: function() {
+  }
+  stop() {
     return runtime.stop().then(function() {
       if (apiEnabled) {
         return api.stop()
       }
     })
-  },
-
-  nodes: runtime.nodes,
-  log: runtime.log,
-  settings: runtime.settings,
-  util: runtime.util,
-  version: runtime.version,
-
-  comms: api.comms,
-  library: api.library,
-  auth: api.auth,
-
-  get httpAdmin() { return adminApp },
-  get httpNode() { return nodeApp },
-  get server() { return server },
+  }
 }
+
+// module.exports = {
+//   init: function(httpServer) {
+//     runtime.init()
+//     api.init(httpServer, runtime)
+//     apiEnabled = true
+//     adminApp = api.adminApp
+//     nodeApp = api.nodeApp
+//     server = api.server
+//     return
+//   },
+//   start: function() {
+//     return runtime.start().then(function() {
+//       if (apiEnabled) {
+//         return api.start()
+//       }
+//     })
+//   },
+//   stop: function() {
+//     return runtime.stop().then(function() {
+//       if (apiEnabled) {
+//         return api.stop()
+//       }
+//     })
+//   },
+
+//   nodes: runtime.nodes,
+//   log: runtime.log,
+//   settings: runtime.settings,
+//   util: runtime.util,
+//   version: runtime.version,
+
+//   comms: api.comms,
+//   library: api.library,
+//   auth: api.auth,
+
+//   get httpAdmin() { return adminApp },
+//   get httpNode() { return nodeApp },
+//   get server() { return server },
+// }

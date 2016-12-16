@@ -6,7 +6,7 @@ const crypto = require('crypto')
 const bcrypt = require('bcryptjs')
 const path = require('path')
 
-const RED = require('./red/red.js')
+const Dot = require('./red/red.js')
 const settings = require('./settings')
 
 const listenpath = `${settings.https ? 'https' : 'http'}://${settings.uiHost}:${settings.uiPort}${settings.httpEditorRoot}`
@@ -19,7 +19,7 @@ if (settings.https) {
   server = http.createServer(app)
 }
 server.setMaxListeners(0)
-RED.init(server)
+const dot = new Dot(server)
 
 function basicAuthMiddleware(user, pass) {
   var basicAuth = require('basic-auth')
@@ -48,11 +48,11 @@ function basicAuthMiddleware(user, pass) {
   }
 }
 
-app.use(settings.httpEditorRoot, RED.httpAdmin)
+app.use(settings.httpEditorRoot, dot.adminApp)
 if (settings.httpNodeAuth) {
   app.use(settings.httpNodeRoot,basicAuthMiddleware(settings.httpNodeAuth.user,settings.httpNodeAuth.pass))
 }
-app.use(settings.httpNodeRoot, RED.httpNode)
+app.use(settings.httpNodeRoot, dot.httpNode)
 
 if (settings.httpStatic) {
   if (settings.httpStaticAuth) {
@@ -62,22 +62,22 @@ if (settings.httpStatic) {
 }
 
 
-RED.start().then(function() {
+dot.start().then(function() {
   server.on('error', function(err) {
     if (err.errno === 'EADDRINUSE') {
-      RED.log.error(`server.unable-to-listen ${listenpath}`)
+      dot.log.error(`server.unable-to-listen ${listenpath}`)
     } else {
-      RED.log.error('server.uncaught-exception')
-      RED.log.error(err.stack || err)
+      dot.log.error('server.uncaught-exception')
+      dot.log.error(err.stack || err)
     }
     process.exit(1)
   })
   server.listen(settings.uiPort, settings.uiHost, function() {
-    RED.log.info(`server.now-running ${listenpath}`)
+    dot.log.info(`server.now-running ${listenpath}`)
   })
 }).otherwise(function(err) {
-  RED.log.error('server.failed-to-start')
-  RED.log.error(err.stack || err)
+  dot.log.error('server.failed-to-start')
+  dot.log.error(err.stack || err)
 })
 
 process.on('uncaughtException', function(err) {
@@ -87,7 +87,7 @@ process.on('uncaughtException', function(err) {
 })
 
 process.on('SIGINT', function () {
-  RED.stop()
+  dot.stop()
   // TODO: need to allow nodes to close asynchronously before terminating the
   // process - ie, promises
   process.exit()
