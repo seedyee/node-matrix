@@ -64,7 +64,7 @@ function init() {
     i18n.init({
       ns: {
         namespaces: [],
-        defaultNs: 'runtime'
+        defaultNs: 'editor'
       },
       fallbackLng: [defaultLang]
     },function() {
