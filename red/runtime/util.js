@@ -1,4 +1,4 @@
-const clone = require("clone")
+const clone = require('clone')
 
 function generateId() {
   return (1+Math.random()*4294967295).toString(16)
@@ -7,21 +7,21 @@ function generateId() {
 function ensureString(o) {
   if (Buffer.isBuffer(o)) {
     return o.toString()
-  } else if (typeof o === "object") {
+  } else if (typeof o === 'object') {
     return JSON.stringify(o)
-  } else if (typeof o === "string") {
+  } else if (typeof o === 'string') {
     return o
   }
-  return ""+o
+  return ''+o
 }
 
 function ensureBuffer(o) {
   if (Buffer.isBuffer(o)) {
     return o
-  } else if (typeof o === "object") {
+  } else if (typeof o === 'object') {
     o = JSON.stringify(o)
-  } else if (typeof o !== "string") {
-    o = ""+o
+  } else if (typeof o !== 'string') {
+    o = ''+o
   }
   return new Buffer(o)
 }
@@ -124,14 +124,14 @@ function normalisePropertyExpression(str) {
     if (!inString) {
       if (c === "'" || c === '"') {
         if (!inBox) {
-          throw new Error("Invalid property expression: unexpected "+c+" at position "+i)
+          throw new Error('Invalid property expression: unexpected '+c+' at position '+i)
         }
         inString = true
         quoteChar = c
         start = i+1
       } else if (c === '.') {
         if (i===0) {
-          throw new Error("Invalid property expression: unexpected . at position 0")
+          throw new Error('Invalid property expression: unexpected . at position 0')
         }
         if (start != i) {
           v = str.substring(start,i)
@@ -142,39 +142,39 @@ function normalisePropertyExpression(str) {
           }
         }
         if (i===length-1) {
-          throw new Error("Invalid property expression: unterminated expression")
+          throw new Error('Invalid property expression: unterminated expression')
         }
         // Next char is a-z
         if (!/[a-z0-9\$\_]/i.test(str[i+1])) {
-          throw new Error("Invalid property expression: unexpected "+str[i+1]+" at position "+(i+1))
+          throw new Error('Invalid property expression: unexpected '+str[i+1]+' at position '+(i+1))
         }
         start = i+1
       } else if (c === '[') {
         if (i === 0) {
-          throw new Error("Invalid property expression: unexpected "+c+" at position "+i)
+          throw new Error('Invalid property expression: unexpected '+c+' at position '+i)
         }
         if (start != i) {
           parts.push(str.substring(start,i))
         }
         if (i===length-1) {
-          throw new Error("Invalid property expression: unterminated expression")
+          throw new Error('Invalid property expression: unterminated expression')
         }
         // Next char is either a quote or a number
         if (!/["'\d]/.test(str[i+1])) {
-          throw new Error("Invalid property expression: unexpected "+str[i+1]+" at position "+(i+1))
+          throw new Error('Invalid property expression: unexpected '+str[i+1]+' at position '+(i+1))
         }
         start = i+1
         inBox = true
       } else if (c === ']') {
         if (!inBox) {
-          throw new Error("Invalid property expression: unexpected "+c+" at position "+i)
+          throw new Error('Invalid property expression: unexpected '+c+' at position '+i)
         }
         if (start != i) {
           v = str.substring(start,i)
           if (/^\d+$/.test(v)) {
             parts.push(parseInt(v))
           } else {
-            throw new Error("Invalid property expression: unexpected array expression at position "+start)
+            throw new Error('Invalid property expression: unexpected array expression at position '+start)
           }
         }
         start = i+1
@@ -187,7 +187,7 @@ function normalisePropertyExpression(str) {
         parts.push(str.substring(start,i))
         // Next char must be a ]
         if (!/\]/.test(str[i+1])) {
-          throw new Error("Invalid property expression: unexpected array expression at position "+start)
+          throw new Error('Invalid property expression: unexpected array expression at position '+start)
         }
         start = i+1
         inString = false
@@ -196,7 +196,7 @@ function normalisePropertyExpression(str) {
 
   }
   if (inBox || inString) {
-    throw new Error("Invalid property expression: unterminated expression")
+    throw new Error('Invalid property expression: unterminated expression')
   }
   if (start < length) {
     parts.push(str.substring(start))
@@ -212,13 +212,13 @@ function getMessageProperty(msg,expr) {
   var msgPropParts = normalisePropertyExpression(expr)
   var m
   msgPropParts.reduce(function(obj, key) {
-    result = (typeof obj[key] !== "undefined" ? obj[key] : undefined)
+    result = (typeof obj[key] !== 'undefined' ? obj[key] : undefined)
     return result
   }, msg)
   return result
 }
 
-function setMessageProperty(msg,prop,value,createMissing) {
+function setMessageProperty(msg, prop, value, createMissing) {
   if (typeof createMissing === 'undefined') {
     createMissing = (typeof value !== 'undefined')
   }
@@ -264,7 +264,7 @@ function setMessageProperty(msg,prop,value,createMissing) {
     }
   }
   key = msgPropParts[length-1]
-  if (typeof value === "undefined") {
+  if (typeof value === 'undefined') {
     if (typeof key === 'number' && Array.isArray(obj)) {
       obj.splice(key,1)
     } else {
@@ -277,7 +277,7 @@ function setMessageProperty(msg,prop,value,createMissing) {
 
 function evaluateNodeProperty(value, type, node, msg) {
   if (type === 'str') {
-    return ""+value
+    return ''+value
   } else if (type === 'num') {
     return Number(value)
   } else if (type === 'json') {
@@ -298,15 +298,15 @@ function evaluateNodeProperty(value, type, node, msg) {
   return value
 }
 
-
 module.exports = {
-  ensureString: ensureString,
-  ensureBuffer: ensureBuffer,
-  cloneMessage: cloneMessage,
-  compareObjects: compareObjects,
-  generateId: generateId,
-  getMessageProperty: getMessageProperty,
-  setMessageProperty: setMessageProperty,
-  evaluateNodeProperty: evaluateNodeProperty,
-  normalisePropertyExpression: normalisePropertyExpression,
+  ensureString,
+  ensureBuffer,
+  cloneMessage,
+  compareObjects,
+  generateId,
+  getMessageProperty,
+  setMessageProperty,
+  evaluateNodeProperty,
+  normalisePropertyExpression,
 }
+

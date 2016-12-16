@@ -35,7 +35,7 @@ function init(runtime) {
   settings = runtime.settings
   flows.init(runtime)
   registry.init(runtime)
-  context.init(runtime.settings)
+  context.init()
 }
 
 module.exports = {
