@@ -4,7 +4,6 @@ const when = require('when')
 const Flow = require('./Flow')
 const typeRegistry = require('../registry')
 const context = require('../context')
-const credentials = require('../credentials')
 const flowUtil = require('./util')
 const log = require('../../log')
 const events = require('../../events')
@@ -30,7 +29,7 @@ function init(runtime) {
   storage = runtime.storage
   started = false
   if (!typeEventRegistered) {
-    events.on('type-registered',function(type) {
+    events.on('type-registered', function(type) {
       if (activeFlowConfig && activeFlowConfig.missingTypes.length > 0) {
         var i = activeFlowConfig.missingTypes.indexOf(type)
         if (i != -1) {
@@ -47,17 +46,20 @@ function init(runtime) {
 }
 
 function loadFlows() {
-  return storage.getFlows().then(function(config) {
-    return credentials.load(config.credentials).then(function() {
-      return config
+  return storage.getFlows()
+    .then(config => config)
+    .otherwise(err => {
+      log.warn(`flows error: error.toString()`)
+      console.log(err.stack)
     })
-  }).otherwise(function(err) {
-    log.warn(log._('nodes.flows.error',{message:err.toString()}))
-    console.log(err.stack)
-  })
 }
+
+/**
+ * Load the current flow configuration from storage
+ * @return a promise for the loading of the config
+ */
 function load() {
-  return setFlows(null,'load',false)
+  return setFlows(null, 'load', false)
 }
 
 /*
@@ -65,8 +67,14 @@ function load() {
  * type - full/nodes/flows/load (default full)
  * muteLog - don't emit the standard log messages (used for individual flow api)
  */
-function setFlows(_config,type,muteLog) {
-  type = type||'full'
+
+/**
+ * Sets the current active config.
+ * @param config the configuration to enable
+ * @param type the type of deployment to do: full (default), nodes, flows, load
+ * @return a promise for the saving/starting of the new flow
+ */
+function setFlows(_config = full, type, muteLog) {
 
   var configSavePromise = null
   var config = null
@@ -86,16 +94,7 @@ function setFlows(_config,type,muteLog) {
     if (type !== 'full') {
       diff = flowUtil.diffConfigs(activeFlowConfig,newFlowConfig)
     }
-    credentials.clean(config)
-    var credsDirty = credentials.dirty()
-    configSavePromise = credentials.export().then(function(creds) {
-      var saveConfig = {
-        flows: config,
-        credentialsDirty:credsDirty,
-        credentials: creds
-      }
-      return storage.saveFlows(saveConfig)
-    })
+    configSavePromise = storage.saveFlows({ flows: config})
   }
 
   return configSavePromise
@@ -193,7 +192,7 @@ function handleStatus(node,statusMessage) {
 }
 
 
-function start(type,diff,muteLog) {
+function start(type, diff, muteLog) {
   //dumpActiveNodes()
   type = type||'full'
   started = true
@@ -259,8 +258,7 @@ function start(type,diff,muteLog) {
  * Stops the current flow configuration
  * @return a promise for the stopping of the flow
  */
-function stopFlows(type,diff,muteLog) {
-  type = type||'full'
+function stopFlows(type = 'full', diff, muteLog) {
   if (!muteLog) {
     if (diff) {
       log.info(`stopping flows: ${type}`)
@@ -518,13 +516,8 @@ function removeFlow(id) {
 }
 
 module.exports = {
-  init: init,
-
-  /**
-   * Load the current flow configuration from storage
-   * @return a promise for the loading of the config
-   */
-  load: load,
+  init,
+  load,
 
   get: getNode,
   eachNode,
@@ -534,12 +527,6 @@ module.exports = {
    */
   getFlows,
 
-  /**
-   * Sets the current active config.
-   * @param config the configuration to enable
-   * @param type the type of deployment to do: full (default), nodes, flows, load
-   * @return a promise for the saving/starting of the new flow
-   */
   setFlows,
 
   /**
