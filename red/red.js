@@ -3,6 +3,7 @@ const path = require('path')
 
 const runtime = require('./runtime')
 const api = require('./api')
+const userSettings = require('../settings')
 
 let nodeApp = null
 let adminApp = null
@@ -14,15 +15,15 @@ function checkBuild() {
   try {
     const stats = fs.statSync(editorFile)
   } catch(err) {
-    const e = new Error('Node-RED not built')
+    const e = new Error('[error]: Node-RED not built')
     e.code = 'not_built'
     throw e
   }
 }
 
 module.exports = {
-  init: function(httpServer, userSettings) {
-    runtime.init(userSettings, api)
+  init: function(httpServer) {
+    runtime.init(api)
     api.init(httpServer, runtime)
     apiEnabled = true
     adminApp = runtime.adminApi.adminApp
@@ -30,6 +31,7 @@ module.exports = {
     server = runtime.adminApi.server
     return
   },
+
   start: function() {
     return runtime.start().then(function() {
       if (apiEnabled) {
@@ -37,6 +39,7 @@ module.exports = {
       }
     })
   },
+
   stop: function() {
     return runtime.stop().then(function() {
       if (apiEnabled) {
@@ -47,7 +50,7 @@ module.exports = {
 
   nodes: runtime.nodes,
   log: runtime.log,
-  settings:runtime.settings,
+  settings: runtime.settings,
   util: runtime.util,
   version: runtime.version,
 

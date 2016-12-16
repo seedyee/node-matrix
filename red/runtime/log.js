@@ -2,6 +2,7 @@ const util = require('util')
 const EventEmitter = require('events').EventEmitter
 const { invert } = require('lodash')
 
+const { logging } = require('../../settings')
 const i18n = require('./i18n')
 
 const levels = {
@@ -66,7 +67,7 @@ var log = module.exports = {
   TRACE:  60,
   AUDIT:  98,
   METRIC: 99,
-  init: function({ logging }) {
+  init: function() {
     metricsEnabled = false
     Object.keys(logging).forEach(key => {
       const config = logging[key]

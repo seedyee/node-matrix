@@ -1,42 +1,41 @@
-var when = require("when");
-var clone = require("clone");
-var assert = require("assert");
-var log = require("./log");
+var when = require('when')
+var clone = require('clone')
+var assert = require('assert')
+var log = require('./log')
+const userSettings = require('../../settings')
 
-var userSettings = null;
-var globalSettings = null;
-var storage = null;
+var globalSettings = null
+var storage = null
 
 var persistentSettings = {
-    init: function(settings) {
-        userSettings = settings;
-        for (var i in settings) {
+    init: function() {
+        for (var i in userSettings) {
             /* istanbul ignore else */
-            if (settings.hasOwnProperty(i) && i !== 'load' && i !== 'get' && i !== 'set' && i !== 'available' && i !== 'reset') {
+            if (userSettings.hasOwnProperty(i) && i !== 'load' && i !== 'get' && i !== 'set' && i !== 'available' && i !== 'reset') {
                 // Don't allow any of the core functions get replaced via settings
                 (function() {
-                    var j = i;
-                    persistentSettings.__defineGetter__(j,function() { return userSettings[j]; });
-                    persistentSettings.__defineSetter__(j,function() { throw new Error("Property '"+j+"' is read-only"); });
-                })();
+                    var j = i
+                    persistentSettings.__defineGetter__(j,function() { return userSettings[j] })
+                    persistentSettings.__defineSetter__(j,function() { throw new Error(`Property ${j} is read only`) })
+                })()
             }
         }
-        globalSettings = null;
+        globalSettings = null
     },
     load: function(_storage) {
-        storage = _storage;
+        storage = _storage
         return storage.getSettings().then(function(_settings) {
-            globalSettings = _settings;
-        });
+            globalSettings = _settings
+        })
     },
     get: function(prop) {
         if (userSettings.hasOwnProperty(prop)) {
-            return clone(userSettings[prop]);
+            return clone(userSettings[prop])
         }
         if (globalSettings === null) {
-            throw new Error('settings.not-available');
+            throw new Error('settings.not-available')
         }
-        return clone(globalSettings[prop]);
+        return clone(globalSettings[prop])
     },
 
     set: function(prop,value) {
@@ -44,15 +43,15 @@ var persistentSettings = {
             throw new Error(`settings read-only prop: ${prop}`)
         }
         if (globalSettings === null) {
-            throw new Error('settings not-available');
+            throw new Error('settings not-available')
         }
-        var current = globalSettings[prop];
-        globalSettings[prop] = value;
+        var current = globalSettings[prop]
+        globalSettings[prop] = value
         try {
-            assert.deepEqual(current,value);
-            return when.resolve();
+            assert.deepEqual(current,value)
+            return when.resolve()
         } catch(err) {
-            return storage.saveSettings(globalSettings);
+            return storage.saveSettings(globalSettings)
         }
     },
     delete: function(prop) {
@@ -60,30 +59,30 @@ var persistentSettings = {
             throw new Error(`settings read-only prop: ${prop}`)
         }
         if (globalSettings === null) {
-            throw new Error('settings not-available');
+            throw new Error('settings not-available')
         }
         if (globalSettings.hasOwnProperty(prop)) {
-            delete globalSettings[prop];
-            return storage.saveSettings(globalSettings);
+            delete globalSettings[prop]
+            return storage.saveSettings(globalSettings)
         }
-        return when.resolve();
+        return when.resolve()
     },
 
     available: function() {
-        return (globalSettings !== null);
+        return (globalSettings !== null)
     },
 
     reset: function() {
         for (var i in userSettings) {
             /* istanbul ignore else */
             if (userSettings.hasOwnProperty(i)) {
-                delete persistentSettings[i];
+                delete persistentSettings[i]
             }
         }
-        userSettings = null;
-        globalSettings = null;
-        storage = null;
+        userSettings = null
+        globalSettings = null
+        storage = null
     }
 }
 
-module.exports = persistentSettings;
+module.exports = persistentSettings

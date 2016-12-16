@@ -19,7 +19,7 @@ if (settings.https) {
   server = http.createServer(app)
 }
 server.setMaxListeners(0)
-RED.init(server, settings)
+RED.init(server)
 
 function basicAuthMiddleware(user, pass) {
   var basicAuth = require('basic-auth')
