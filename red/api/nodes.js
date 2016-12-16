@@ -1,6 +1,4 @@
-const locales = require('./locales')
-
-var redNodes
+let redNodes
 
 module.exports = {
   init: function(runtime) {
@@ -10,8 +8,7 @@ module.exports = {
     if (req.get('accept') == 'application/json') {
       res.json(redNodes.getNodeList())
     } else {
-      const lang = locales.determineLangFromHeaders(req.acceptsLanguages())
-      res.send(redNodes.getNodeConfigs(lang))
+      res.send(redNodes.getNodeConfigs('en-US'))
     }
   },
 }

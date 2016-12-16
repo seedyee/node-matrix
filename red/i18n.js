@@ -29,7 +29,7 @@ function mergeCatalog(fallback, catalog) {
   }
 }
 
-var MessageFileLoader = {
+const MessageFileLoader = {
   fetchOne: function(lng, ns, callback) {
     if (resourceMap[ns]) {
       var file = path.join(resourceMap[ns].basedir,lng,resourceMap[ns].file)
@@ -94,10 +94,6 @@ const obj = module.exports = {
   init: init,
   registerMessageCatalog: registerMessageCatalog,
   catalog: getCatalog,
-  i: i18n,
   defaultLang: defaultLang,
 }
 
-obj['_'] = function() {
-  return i18n.t.apply(null,arguments)
-}

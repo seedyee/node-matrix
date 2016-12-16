@@ -3,7 +3,6 @@ const EventEmitter = require('events').EventEmitter
 const { invert } = require('lodash')
 
 const { logging } = require('../../settings')
-const i18n = require('./i18n')
 
 const levels = {
   off:    1,

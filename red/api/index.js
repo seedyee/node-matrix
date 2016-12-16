@@ -59,7 +59,6 @@ function init(_server, _runtime) {
   flow.init(runtime)
   info.init(runtime)
   library.init(adminApp,runtime)
-  locales.init(runtime)
   nodes.init(runtime)
 
   ui.init(runtime)
@@ -120,7 +119,7 @@ function init(_server, _runtime) {
 
   adminApp.get('/credentials/:type/:id', needsPermission('credentials.read'),credentials.get,errorHandler)
 
-  adminApp.get(/locales\/(.+)\/?$/,locales.get,errorHandler)
+  adminApp.get(/locales\/(.+)\/?$/, locales, errorHandler)
 
   // Library
   adminApp.post(new RegExp('/library/flows\/(.*)'), needsPermission('library.write'),library.post,errorHandler)
