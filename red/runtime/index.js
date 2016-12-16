@@ -1,5 +1,4 @@
 const when = require('when')
-
 const redNodes = require('./nodes')
 const storage = require('./storage')
 const log = require('./log')
