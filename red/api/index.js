@@ -134,7 +134,7 @@ function init(_server, _runtime) {
 }
 
 function start() {
-  return i18n.registerMessageCatalog('editor',path.resolve(path.join(__dirname,'locales')),'editor.json').then(function(){
+  return i18n.registerMessageCatalog('editor', path.join(__dirname, 'locales'), 'editor.json').then(function(){
     comms.start()
   })
 }

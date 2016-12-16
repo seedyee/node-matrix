@@ -95,7 +95,7 @@ const obj = module.exports = {
   registerMessageCatalog: registerMessageCatalog,
   catalog: getCatalog,
   i: i18n,
-  defaultLang:defaultLang,
+  defaultLang: defaultLang,
 }
 
 obj['_'] = function() {

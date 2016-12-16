@@ -21,9 +21,6 @@ function init() {
 
 function start() {
   return i18n.init()
-             .then(function() {
-               /* return i18n.registerMessageCatalog('runtime', path.join(__dirname, 'locales'), 'runtime.json')*/
-             })
              .then(function() { return storage.init(runtime)})
              .then(function() { return settings.load(storage)})
              .then(function() {

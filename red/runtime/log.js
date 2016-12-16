@@ -139,5 +139,3 @@ var log = module.exports = {
     log.log(msg)
   }
 }
-
-log['_'] = i18n._

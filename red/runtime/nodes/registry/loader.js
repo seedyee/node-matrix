@@ -150,6 +150,7 @@ function createNodeApi(node) {
     }
     // TODO: stub out httpAdmin/httpNode/server
   }
+
   red['_'] = function() {
     var args = Array.prototype.slice.call(arguments, 0)
     if (args[0].indexOf(':') === -1) {
