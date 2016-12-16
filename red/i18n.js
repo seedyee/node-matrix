@@ -4,13 +4,21 @@ const path = require('path')
 const fs = require('fs')
 
 const defaultLang = 'en-US'
+const resourceMap = {
+  'node-red':
+    { basedir: '/Users/vimniky/projects/dot-matrix/nodes/core/locales',
+      file: 'messages.json',
+    },
+    editor:
+    { basedir: '/Users/vimniky/projects/dot-matrix/red/api/locales',
+      file: 'editor.json',
+    },
+}
 
-let resourceMap = {}
 let resourceCache = {}
 
 function registerMessageCatalog(namespace, basedir, file) {
   return when.promise(function(resolve, reject) {
-    resourceMap[namespace] = { basedir, file }
     i18n.loadNamespace(namespace, function() {
       resolve()
     })
@@ -33,7 +41,7 @@ const MessageFileLoader = {
   fetchOne: function(lng, ns, callback) {
     if (resourceMap[ns]) {
       var file = path.join(resourceMap[ns].basedir,lng,resourceMap[ns].file)
-      //console.log(file)
+      console.log(file)
       fs.readFile(file,'utf8',function(err,content) {
         if (err) {
           callback(err)
@@ -41,7 +49,6 @@ const MessageFileLoader = {
           try {
             resourceCache[ns] = resourceCache[ns]||{}
             resourceCache[ns][lng] = JSON.parse(content.replace(/^\uFEFF/, ''))
-            //console.log(resourceCache[ns][lng])
             if (lng !== defaultLang) {
               mergeCatalog(resourceCache[ns][defaultLang],resourceCache[ns][lng])
             }
@@ -73,7 +80,7 @@ function init() {
   })
 }
 
-function getCatalog(namespace,lang) {
+function getCatalog(namespace, lang) {
   var result = null
   if (resourceCache.hasOwnProperty(namespace)) {
     result = resourceCache[namespace][lang]
