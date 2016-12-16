@@ -115,8 +115,8 @@ function createNodeApi(node) {
     error,
     trace,
     debug,
-    metric,
-    audit,
+    // metric,
+    // audit,
   } = runtime.log
 
   const red = {

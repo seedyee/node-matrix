@@ -15,9 +15,6 @@ let settings
  * @param opts - optional additional options for the node
  */
 function registerType(nodeSet, type, constructor, opts) {
-  if (opts && opts.credentials) {
-    credentials.register(type, opts.credentials)
-  }
   registry.registerType(nodeSet, type, constructor)
 }
 
@@ -32,19 +29,6 @@ function createNode(node, def) {
   let id = node.id
   if (def._alias) {
     id = def._alias
-  }
-  var creds = credentials.get(id)
-  if (creds) {
-    //console.log('Attaching credentials to ',node.id)
-    // allow $(foo) syntax to substitute env variables for credentials also...
-    for (var p in creds) {
-      if (creds.hasOwnProperty(p)) {
-        flowUtil.mapEnvVarProperties(creds, p)
-      }
-    }
-    node.credentials = creds
-  } else if (credentials.getDefinition(node.type)) {
-    node.credentials = {}
   }
 }
 
@@ -87,10 +71,4 @@ module.exports = {
   getFlow:     flows.getFlow,
   updateFlow:  flows.updateFlow,
   removeFlow:  flows.removeFlow,
-
-  // Credentials
-  addCredentials: credentials.add,
-  getCredentials: credentials.get,
-  deleteCredentials: credentials.delete,
-  getCredentialDefinition: credentials.getDefinition,
 }

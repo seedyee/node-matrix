@@ -22,19 +22,10 @@ function start() {
   return  storage.init(runtime)
              .then(function() { return settings.load(storage)})
              .then(function() {
-               console.log('\n\n==================== Welcome ============================\n\n')
+               console.log('\n==================== Welcome ============================\n')
                log.info(`Node-RED version v${version}`)
                log.info(`Node.js version ${process.version}`)
                return redNodes.load().then(function() {
-                 const nodeErrors = redNodes.getNodeList(function(n) { return n.err != null})
-                 if (nodeErrors.length > 0) {
-                   log.warn('------------------------------------------------------')
-                   nodeErrors.forEach(err => {
-                     log.warn(`[${err.name}] ${err.err}`)
-                   })
-                   log.warn('------------------------------------------------------')
-                 }
-                 log.info(`runtime.paths.settings ${settings.settingsFile}`)
                  redNodes.loadFlows().then(redNodes.startFlows)
                  started = true
                }).catch((err) => {

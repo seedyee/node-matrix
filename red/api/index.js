@@ -13,7 +13,6 @@ const library = require('./library')
 const info = require('./info')
 const theme = require('./theme')
 const locales = require('./locales')
-const credentials = require('./credentials')
 const comms = require('./comms')
 const auth = require('./auth')
 const needsPermission = auth.needsPermission
@@ -52,7 +51,6 @@ function init(_server, _runtime) {
   comms.init(server, runtime)
   adminApp = express()
   auth.init(runtime)
-  credentials.init(runtime)
   flows.init(runtime)
   flow.init(runtime)
   info.init(runtime)
@@ -114,8 +112,6 @@ function init(_server, _runtime) {
 
   // Nodes
   adminApp.get('/nodes', needsPermission('nodes.read'),nodes.getAll,errorHandler)
-
-  adminApp.get('/credentials/:type/:id', needsPermission('credentials.read'),credentials.get,errorHandler)
 
   adminApp.get(/locales\/(.+)\/?$/, locales, errorHandler)
 

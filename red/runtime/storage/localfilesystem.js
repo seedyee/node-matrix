@@ -224,8 +224,6 @@ var localfilesystem = {
     getFlows: function() {
         if (!initialFlowLoadComplete) {
             initialFlowLoadComplete = true;
-            log.info(`storage.localfilesystem.user-dir: ${settings.userDir}`)
-            log.info(`storage.localfilesystem.flows-file: ${flowsFullPath}`)
         }
         return readFile(flowsFullPath,flowsFileBackup,[],'flow');
     },
