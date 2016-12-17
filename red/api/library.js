@@ -139,7 +139,7 @@ module.exports = {
   register: createLibrary,
 
   getAll: function(req,res) {
-    storage.getAllFlows().then(function(flows) {
+    storage.getAllFlows('/').then(function(flows) {
       log.audit({event: 'library.get.all',type:'flow'},req)
       if (exampleCount > 0) {
         flows.d = flows.d||{}

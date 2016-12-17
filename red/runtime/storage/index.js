@@ -49,37 +49,10 @@ var storageModuleInterface = {
     if (storageModule.hasOwnProperty('getAllFlows')) {
       return storageModule.getAllFlows()
     } else {
+      console.log('___________________listFlows')
       return listFlows('/')
     }
   },
-
-  getFlow: function(fn) {
-    if (is_malicious(fn)) {
-      var err = new Error()
-      err.code = 'forbidden'
-      return when.reject(err)
-    }
-    if (storageModule.hasOwnProperty('getFlow')) {
-      return storageModule.getFlow(fn)
-    } else {
-      return storageModule.getLibraryEntry('flows',fn)
-    }
-
-  },
-  saveFlow: function(fn, data) {
-    if (is_malicious(fn)) {
-      var err = new Error()
-      err.code = 'forbidden'
-      return when.reject(err)
-    }
-    if (storageModule.hasOwnProperty('saveFlow')) {
-      return storageModule.saveFlow(fn, data)
-    } else {
-      return storageModule.saveLibraryEntry('flows',fn,{},data)
-    }
-  }
-  /* End deprecated functions */
-
 }
 
 
