@@ -1,12 +1,7 @@
-// The `https` setting requires the `fs` module. Uncomment the following
-// to make it available:
-//var fs = require("fs");
 const path = require('path')
 
 const { getVersion } = require('./red/utils')
 
-process.title = 'node-red'
-process.env.NODE_RED_HOME = __dirname
 const uiPort = process.env.UI_PORT || 1880
 const uiHost = process.env.UI_HOST || '127.0.0.1'
 const userDir = path.resolve(process.env.USER_DIR || path.join(process.env.HOME, './.node-red'))
@@ -18,13 +13,8 @@ const userNodesDir = path.join(userDir, './nodes')
 const nodesDirList = [coreNodesDir, userNodesDir]
 
 module.exports = {
-  // the tcp port that the Node-RED web server is listening on
   uiPort,
-  // By default, the Node-RED UI accepts connections on all IPv4 interfaces.
-  // The following property can be used to listen on a specific interface. For
-  // example, the following would only allow connections from the local machine.
   uiHost,
-
   userDir,
 
   // Node-RED scans the `nodes` directory in the install directory to find nodes.
@@ -58,14 +48,6 @@ module.exports = {
   //  property to true:
   //flowFilePretty: true,
 
-  // By default, credentials are encrypted in storage using a generated key. To
-  // specify your own secret, set the following property.
-  // If you want to disable encryption of credentials, set this property to false.
-  // Note: once you set this property, do not change it - doing so will prevent
-  // node-red from being able to decrypt your existing credentials and they will be
-  // lost.
-  //credentialSecret: "a-secret-key",
-
   // The file containing the flows. If not set, it defaults to flows_<hostname>.json
   flowFile: 'flows.json',
 
@@ -73,7 +55,6 @@ module.exports = {
   // following property can be used to identify a directory of static content
   // that should be served at http://localhost:1880/.
   //httpStatic: '/home/nol/node-red-static/',
-
 
   // By default, the Node-RED UI is available at http://localhost:1880/
   // The following property can be used to specifiy a different root path.
@@ -94,26 +75,6 @@ module.exports = {
   // relative to httpEditorRoot
   //ui: { path: "ui" },
 
-  // Securing Node-RED
-  // -----------------
-  // To password protect the Node-RED editor and admin API, the following
-  // property can be used. See http://nodered.org/docs/security.html for details.
-  //adminAuth: {
-  //    type: 'credentials',
-  //    users: [{
-  //        username: 'admin',
-  //        password: '$2a$08$zZWtXTja0fB1pzD4sHCMyOCMYz2Z6dNbM6tl8sJogENOMcxWV9DN.',
-  //        permissions: '*'
-  //    }]
-  //},
-
-  // To password protect the node-defined HTTP endpoints (httpNodeRoot), or
-  // the static content (httpStatic), the following properties can be used.
-  // The pass field is a bcrypt hash of the password.
-  // See http://nodered.org/docs/security.html#generating-the-password-hash
-  //httpNodeAuth: {user:'user',pass:'$2a$08$zZWtXTja0fB1pzD4sHCMyOCMYz2Z6dNbM6tl8sJogENOMcxWV9DN.'},
-  //httpStaticAuth: {user:'user',pass:'$2a$08$zZWtXTja0fB1pzD4sHCMyOCMYz2Z6dNbM6tl8sJogENOMcxWV9DN.'},
-
   // The following property can be used to enable HTTPS
   // See http://nodejs.org/api/https.html#https_https_createserver_options_requestlistener
   // for details on its contents.
@@ -124,15 +85,6 @@ module.exports = {
   //    key: fs.readFileSync('privatekey.pem'),
   //    cert: fs.readFileSync('certificate.pem')
   //},
-
-  // The following property can be used to cause insecure HTTP connections to
-  // be redirected to HTTPS.
-  //requireHttps: true
-
-  // The following property can be used to disable the editor. The admin API
-  // is not affected by this option. To disable both the editor and the admin
-  // API, use either the httpRoot or httpAdminRoot properties
-  disableEditor: false,
 
   // The following property can be used to configure cross-origin resource sharing
   // in the HTTP nodes.

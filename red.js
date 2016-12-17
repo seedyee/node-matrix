@@ -4,7 +4,6 @@ const express = require('express')
 const crypto = require('crypto')
 const bcrypt = require('bcryptjs')
 const path = require('path')
-const { basicAuthMiddleware } = require('./red/utils/basicAuthMiddleware')
 
 const Dot = require('./red/red.js')
 
@@ -22,20 +21,12 @@ if (settings.https) {
 server.setMaxListeners(0)
 const dot = new Dot(server)
 
-
 app.use(settings.httpEditorRoot, dot.adminApp)
-if (settings.httpNodeAuth) {
-  app.use(settings.httpNodeRoot,basicAuthMiddleware(settings.httpNodeAuth.user,settings.httpNodeAuth.pass))
-}
 app.use(settings.httpNodeRoot, dot.nodeApp)
 
 if (settings.httpStatic) {
-  if (settings.httpStaticAuth) {
-    app.use('/', basicAuthMiddleware(settings.httpStaticAuth.user,settings.httpStaticAuth.pass))
-  }
   app.use('/', express.static(settings.httpStatic))
 }
-
 
 dot.start().then(function() {
   server.on('error', function(err) {

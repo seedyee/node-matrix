@@ -56,17 +56,6 @@ function init(_server, _runtime) {
 
   ui.init(runtime)
   const editorApp = express()
-  if (settings.requireHttps === true) {
-    editorApp.enable('trust proxy')
-    editorApp.use(function (req, res, next) {
-      if (req.secure) {
-        next()
-      } else {
-        res.redirect('https://' + req.headers.host + req.originalUrl)
-      }
-    })
-  }
-
   editorApp.get('/', ensureRuntimeStarted, ui.ensureSlash, ui.editor)
   editorApp.get('/icons/:icon', ui.icon)
   // theme.init(runtime)
