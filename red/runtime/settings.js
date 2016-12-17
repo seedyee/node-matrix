@@ -37,22 +37,22 @@ var persistentSettings = {
     }
     return clone(globalSettings[prop])
   },
-  set: function(prop,value) {
-    if (userSettings.hasOwnProperty(prop)) {
-      throw new Error(`settings read-only prop: ${prop}`)
-    }
-    if (globalSettings === null) {
-      throw new Error('settings not-available')
-    }
-    var current = globalSettings[prop]
-    globalSettings[prop] = value
-    try {
-      assert.deepEqual(current,value)
-      return when.resolve()
-    } catch(err) {
-      return storage.saveSettings(globalSettings)
-    }
-  },
+  // set: function(prop,value) {
+  //   if (userSettings.hasOwnProperty(prop)) {
+  //     throw new Error(`settings read-only prop: ${prop}`)
+  //   }
+  //   if (globalSettings === null) {
+  //     throw new Error('settings not-available')
+  //   }
+  //   var current = globalSettings[prop]
+  //   globalSettings[prop] = value
+  //   try {
+  //     assert.deepEqual(current,value)
+  //     return when.resolve()
+  //   } catch(err) {
+  //     return storage.saveSettings(globalSettings)
+  //   }
+  // },
 }
 
 module.exports = persistentSettings

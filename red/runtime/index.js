@@ -19,7 +19,7 @@ function init() {
 }
 
 function start() {
-  return  storage.init(runtime)
+  return  storage.init(runtime.settings)
              .then(function() { return settings.load(storage)})
              .then(function() {
                console.log('\n==================== Welcome ============================\n')
