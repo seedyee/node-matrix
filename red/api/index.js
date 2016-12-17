@@ -11,7 +11,6 @@ const flows = require('./flows')
 const flow = require('./flow')
 const library = require('./library')
 const info = require('./info')
-const theme = require('./theme')
 const locales = require('./locales')
 const comms = require('./comms')
 
@@ -58,10 +57,6 @@ function init(_server, _runtime) {
   const editorApp = express()
   editorApp.get('/', ensureRuntimeStarted, ui.ensureSlash, ui.editor)
   editorApp.get('/icons/:icon', ui.icon)
-  // theme.init(runtime)
-  // if (settings.editorTheme) {
-  //   editorApp.use('/theme', theme.app())
-  // }
   editorApp.use('/', ui.editorResources)
   adminApp.use(editorApp)
 

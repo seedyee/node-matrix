@@ -3,7 +3,20 @@ const path = require('path')
 const express = require('express')
 const Mustache = require('mustache')
 
-const theme = require('./theme')
+const themeContext = {
+  page: {
+    title: 'Dot-Matrix',
+    favicon: 'favicon.ico',
+    tabicon: 'red/images/node-red-icon-black.svg'
+  },
+  header: {
+    title: 'Dot-Matrix',
+    image: 'red/images/node-red.png'
+  },
+  asset: {
+    red: (process.env.NODE_ENV == 'development')? 'red/red.js':'red/red.min.js'
+  }
+}
 
 const icon_paths = [path.resolve(__dirname + '/../../public/icons')]
 const iconCache = {}
@@ -57,8 +70,7 @@ module.exports = {
   },
 
   editor: function(req, res) {
-    res.send(Mustache.render(editorTemplate, theme.context()))
+    res.send(Mustache.render(editorTemplate, themeContext))
   },
-
   editorResources: express.static(__dirname + '/../../public')
 }

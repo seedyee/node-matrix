@@ -1,4 +1,3 @@
-const theme = require('./theme')
 const util = require('util')
 var runtime
 var settings
@@ -14,12 +13,6 @@ module.exports = {
       version: settings.version,
       user: req.user
     }
-
-    var themeSettings = theme.settings()
-    if (themeSettings) {
-      safeSettings.editorTheme = themeSettings
-    }
-
     if (util.isArray(settings.paletteCategories)) {
       safeSettings.paletteCategories = settings.paletteCategories
     }
