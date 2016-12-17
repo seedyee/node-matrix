@@ -73,42 +73,9 @@ var storageModuleInterface = {
   getAllFlows: listFlows
 }
 
-
 function listFlows(path) {
   return storageModule.getLibraryEntry('flows', path).then(function(res) {
-    console.log('----------res', res)
-    return when.promise(function(resolve) {
-      var promises = []
-      res.forEach(function(r) {
-        if (typeof r === 'string') {
-          promises.push(listFlows(Path.join(path,r)))
-        } else {
-          promises.push(when.resolve(r))
-        }
-      })
-      var i=0
-      when.settle(promises).then(function(res2) {
-        var result = {}
-        res2.forEach(function(r) {
-          // TODO: name||fn
-          if (r.value.fn) {
-            var name = r.value.name
-            if (!name) {
-              name = r.value.fn.split('.')[0]
-            }
-            result.f = result.f || []
-            result.f.push(name)
-          } else {
-            result.d = result.d || {}
-            result.d[res[i]] = r.value
-            //console.log('>',r.value)
-          }
-          i++
-        })
-        console.log('----------result', result)
-        resolve(result)
-      })
-    })
+    return { f: Object.values(res).map(i => i.fn) }
   })
 }
 
