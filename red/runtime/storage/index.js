@@ -1,6 +1,6 @@
 const storageModule = require('./localfilesystem')
 
-const { init, getSettings, saveSettings, getLibraryEntry } = storageModule
+const { init, getSettings, saveSettings, getLibraryEntry, getLibEntry, getAllLibs } = storageModule
 const storageModuleInterface = {
   init,
   getFlows: function() {
@@ -15,12 +15,8 @@ const storageModuleInterface = {
   saveLibraryEntry: function(type, path, meta, data) {
     return storageModule.saveLibraryEntry(type, path, meta, data)
   },
-  getLibraryEntryList(path) {
-    // todo: handle nested library
-    return storageModule.getLibraryEntry(path).then(function(res) {
-      return { f: Object.values(res).map(i => i.fn) }
-    })
-  }
+  getLibEntry,
+  getAllLibs,
 }
 
 module.exports = storageModuleInterface

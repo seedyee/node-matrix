@@ -58,29 +58,14 @@ module.exports = {
     storage = runtime.storage
   },
   register: createLibrary,
+
   getAll: function(req,res) {
-    storage.getLibraryEntryList('/').then(flows => res.json(flows))
-    console.log('================== getAll')
+    const libs = storage.getAllLibs()
+    res.json(libs)
   },
   get: function(req,res) {
-    // type , path
-    storage.getLibraryEntry(req.params[0]).then(function(data) {
-      console.log('================== get')
-      // data is already a JSON string
-      log.audit({event: 'library.get',type:'flow',path:req.params[0]},req)
-      res.set('Content-Type', 'application/json')
-      res.send(data)
-    }).otherwise(function(err) {
-      if (err) {
-        if (err.code === 'forbidden') {
-          log.audit({event: 'library.get',type:'flow',path:req.params[0],error:'forbidden'},req)
-          res.status(403).end()
-          return
-        }
-      }
-      log.audit({event: 'library.get',type:'flow',path:req.params[0],error:'not_found'},req)
-      res.status(404).end()
-    })
+    const data = storage.getLibEntry(req.params[0])
+    res.json(data)
   },
   post: function(req,res) {
     var flow = JSON.stringify(req.body)

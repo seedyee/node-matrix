@@ -139,51 +139,16 @@ const localfilesystem = {
     return writeFile(globalSettingsFile,JSON.stringify(settings,null,1))
   },
 
-  getLibraryEntry: function(path) {
-    const type = 'flows'
-    const flowLibDir = fspath.join(libDir, type)
-    var rootPath = fspath.join(libDir, type, path)
-    return promiseDir(flowLibDir).then(function () {
-      return nodeFn.call(fs.lstat, rootPath).then(function(stats) {
-        if (stats.isFile()) {
-          return getFileBody(flowLibDir, path)
-        }
-        if (path.substr(-1) == '/') {
-          path = path.substr(0,path.length-1)
-        }
-        return nodeFn.call(fs.readdir, rootPath).then(function(fns) {
-          var dirs = []
-          var files = []
-          fns.sort().filter(function(fn) {
-            var fullPath = fspath.join(path,fn)
-            var absoluteFullPath = fspath.join(flowLibDir,fullPath)
-            if (fn[0] != '.') {
-              var stats = fs.lstatSync(absoluteFullPath)
-              if (stats.isDirectory()) {
-                dirs.push(fn)
-              } else {
-                var meta = getFileMeta(flowLibDir, fullPath)
-                meta.fn = fn
-                files.push(meta)
-              }
-            }
-          })
-          console.log('+++++++++++++++++++++++++dirs', dirs.concat(files))
-          return dirs.concat(files)
-        })
-      }).otherwise(function(err) {
-        if (type === 'flows' && !/\.json$/.test(path)) {
-          return localfilesystem.getLibraryEntry(type,path+'.json')
-            .otherwise(function(e) {
-              throw err
-            })
-        } else {
-          throw err
-        }
-      })
-    })
+  getLibEntry: function(path) {
+    const flowLibDir = fspath.join(libDir, 'flows')
+    return getFileBody(flowLibDir, path)
   },
 
+  getAllLibs: function() {
+    const flowLibDir = fspath.join(libDir, 'flows')
+    const files = fs.readdirSync(flowLibDir)
+    return { f: files }
+  },
   // type: 'folows' | 'function' | 'template'
   // path can be tested path --> dir/subdir/name
   saveLibraryEntry: function(type, path, meta, body) {
@@ -193,5 +158,5 @@ const localfilesystem = {
     })
   }
 }
-
+localfilesystem.getAllLibs()
 module.exports = localfilesystem
