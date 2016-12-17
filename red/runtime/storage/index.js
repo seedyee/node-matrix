@@ -40,33 +40,10 @@ var storageModuleInterface = {
     return storageModule.init(runtime.settings)
   },
   getFlows: function() {
-    return storageModule.getFlows().then(function(flows) {
-      return storageModule.getCredentials().then(function(creds) {
-        var result = {
-          flows: flows,
-          credentials: creds
-        }
-        result.rev = crypto.createHash('md5').update(JSON.stringify(result)).digest('hex')
-        return result
-      })
-    })
+    return storageModule.getFlows().then(flows =>({ flows }))
   },
   saveFlows: function(config) {
-    var flows = config.flows
-    var credentials = config.credentials
-    var credentialSavePromise
-    if (config.credentialsDirty) {
-      credentialSavePromise = storageModule.saveCredentials(credentials)
-    } else {
-      credentialSavePromise = when.resolve()
-    }
-    delete config.credentialsDirty
-
-    return credentialSavePromise.then(function() {
-      return storageModule.saveFlows(flows).then(function() {
-        return crypto.createHash('md5').update(JSON.stringify(config)).digest('hex')
-      })
-    })
+    return storageModule.saveFlows(config.flows)
   },
   getSettings: function() {
     if (settingsAvailable) {

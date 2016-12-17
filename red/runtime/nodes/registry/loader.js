@@ -95,18 +95,19 @@ function createNodeApi(node) {
     createNode,
     getNode,
     eachNode,
-    addCredentials,
-    getCredentials,
-    deleteCredentials,
+    // addCredentials,
+    // getCredentials,
+    // deleteCredentials,
+
   } = runtime.nodes
 
   const nodesApi = {
     createNode,
     getNode,
     eachNode,
-    addCredentials,
-    getCredentials,
-    deleteCredentials,
+    // addCredentials,
+    // getCredentials,
+    // deleteCredentials,
   }
   const logApi = {
     log,

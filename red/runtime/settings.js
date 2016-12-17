@@ -11,7 +11,7 @@ var persistentSettings = {
   init: function() {
     for (var i in userSettings) {
       /* istanbul ignore else */
-      if (userSettings.hasOwnProperty(i) && i !== 'load' && i !== 'get' && i !== 'set' && i !== 'available' && i !== 'reset') {
+      if (userSettings.hasOwnProperty(i) && i !== 'load' && i !== 'get' && i !== 'set' && i !== 'reset') {
         // Don't allow any of the core functions get replaced via settings
         (function() {
           var j = i
@@ -54,5 +54,6 @@ var persistentSettings = {
     }
   },
 }
+
 module.exports = persistentSettings
 
