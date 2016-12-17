@@ -19,31 +19,14 @@ const storageModuleInterface = {
   getLibraryEntry: function(type, path) {
     return storageModule.getLibraryEntry(type, path)
   },
-  saveLibraryEntry: function(type, path, meta, body) {
-    return storageModule.saveLibraryEntry(type, path, meta, body)
+  saveLibraryEntry: function(type, path, meta, data) {
+    return storageModule.saveLibraryEntry(type, path, meta, data)
   },
-  getFlow: function(fn) {
-    if (storageModule.hasOwnProperty('getFlow')) {
-      return storageModule.getFlow(fn)
-    } else {
-      return storageModule.getLibraryEntry('flows',fn)
-    }
-  },
-  saveFlow: function(fn, data) {
-    if (storageModule.hasOwnProperty('saveFlow')) {
-      return storageModule.saveFlow(fn, data)
-    } else {
-      return storageModule.saveLibraryEntry('flows',fn,{},data)
-    }
-  },
-  /* End deprecated functions */
-  getAllFlows: listFlows
-}
-
-function listFlows(path) {
-  return storageModule.getLibraryEntry('flows', path).then(function(res) {
-    return { f: Object.values(res).map(i => i.fn) }
-  })
+  getLibraryEntryList(path) {
+    return storageModule.getLibraryEntry('flows', path).then(function(res) {
+      return { f: Object.values(res).map(i => i.fn) }
+    })
+  }
 }
 
 module.exports = storageModuleInterface

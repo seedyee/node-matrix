@@ -60,10 +60,11 @@ module.exports = {
   },
   register: createLibrary,
   getAll: function(req,res) {
-    storage.getAllFlows('/').then(flows => res.json(flows))
+    storage.getLibraryEntryList('/').then(flows => res.json(flows))
   },
   get: function(req,res) {
-    storage.getFlow(req.params[0]).then(function(data) {
+    // type , path
+    storage.getLibraryEntry('flows', req.params[0]).then(function(data) {
       // data is already a JSON string
       log.audit({event: 'library.get',type:'flow',path:req.params[0]},req)
       res.set('Content-Type', 'application/json')
@@ -82,7 +83,8 @@ module.exports = {
   },
   post: function(req,res) {
     var flow = JSON.stringify(req.body)
-    storage.saveFlow(req.params[0],flow).then(function() {
+    // type, path, meta, data
+    storage.saveLibraryEntry('flows', req.params[0], {} ,flow).then(function() {
       log.audit({event: 'library.set',type:'flow',path:req.params[0]},req)
       res.status(204).end()
     }).otherwise(function(err) {
