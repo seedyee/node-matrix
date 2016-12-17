@@ -60,10 +60,7 @@ module.exports = {
   },
   register: createLibrary,
   getAll: function(req,res) {
-    storage.getAllFlows('/').then(function(flows) {
-      console.log('-------------------flows', flows)
-      res.json(flows)
-    })
+    storage.getAllFlows('/').then(flows => res.json(flows))
   },
   get: function(req,res) {
     storage.getFlow(req.params[0]).then(function(data) {
