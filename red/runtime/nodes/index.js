@@ -1,10 +1,7 @@
 const registry = require('./registry')
 const flows = require('./flows')
-const flowUtil = require('./flows/util')
 const context = require('./context')
 const Node = require('./Node')
-
-let settings
 
 /**
  * Registers a node constructor
@@ -32,7 +29,6 @@ function createNode(node, def) {
 }
 
 function init(runtime) {
-  settings = runtime.settings
   flows.init(runtime)
   registry.init(runtime)
   context.init()

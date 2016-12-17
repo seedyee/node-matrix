@@ -1,7 +1,6 @@
 var fs = require('fs-extra')
 var when = require('when')
 var nodeFn = require('when/node/function')
-var keys = require('when/keys')
 var fspath = require('path')
 var mkdirp = fs.mkdirs
 const settings = require('../../../settings')
