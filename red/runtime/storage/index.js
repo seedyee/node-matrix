@@ -44,20 +44,39 @@ var storageModuleInterface = {
     return storageModule.saveLibraryEntry(type, path, meta, body)
   },
 
-  /* Deprecated functions */
-  getAllFlows: function() {
-    if (storageModule.hasOwnProperty('getAllFlows')) {
-      return storageModule.getAllFlows()
+  getFlow: function(fn) {
+    if (is_malicious(fn)) {
+      var err = new Error()
+      err.code = 'forbidden'
+      return when.reject(err)
+    }
+    if (storageModule.hasOwnProperty('getFlow')) {
+      return storageModule.getFlow(fn)
     } else {
-      console.log('___________________listFlows')
-      return listFlows('/')
+      return storageModule.getLibraryEntry('flows',fn)
+    }
+
+  },
+  saveFlow: function(fn, data) {
+    if (is_malicious(fn)) {
+      var err = new Error()
+      err.code = 'forbidden'
+      return when.reject(err)
+    }
+    if (storageModule.hasOwnProperty('saveFlow')) {
+      return storageModule.saveFlow(fn, data)
+    } else {
+      return storageModule.saveLibraryEntry('flows',fn,{},data)
     }
   },
+  /* End deprecated functions */
+  getAllFlows: listFlows
 }
 
 
 function listFlows(path) {
-  return storageModule.getLibraryEntry('flows',path).then(function(res) {
+  return storageModule.getLibraryEntry('flows', path).then(function(res) {
+    console.log('----------res', res)
     return when.promise(function(resolve) {
       var promises = []
       res.forEach(function(r) {
@@ -86,6 +105,7 @@ function listFlows(path) {
           }
           i++
         })
+        console.log('----------result', result)
         resolve(result)
       })
     })

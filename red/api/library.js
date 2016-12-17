@@ -70,127 +70,36 @@ function createLibrary(type) {
   }
 }
 
-var exampleRoots = {}
-var exampleFlows = {d:{}}
-var exampleCount = 0
-
-function getFlowsFromPath(path) {
-  return when.promise(function(resolve,reject) {
-    var result = {}
-    fs.readdir(path,function(err,files) {
-      var promises = []
-      var validFiles = []
-      files.forEach(function(file) {
-        var fullPath = fspath.join(path,file)
-        var stats = fs.lstatSync(fullPath)
-        if (stats.isDirectory()) {
-          validFiles.push(file)
-          promises.push(getFlowsFromPath(fullPath))
-        } else if (/\.json$/.test(file)){
-          validFiles.push(file)
-          exampleCount++
-          promises.push(when.resolve(file.split('.')[0]))
-        }
-      })
-      var i=0
-      when.all(promises).then(function(results) {
-        results.forEach(function(r) {
-          if (typeof r === 'string') {
-            result.f = result.f||[]
-            result.f.push(r)
-          } else {
-            result.d = result.d||{}
-            result.d[validFiles[i]] = r
-          }
-          i++
-        })
-
-        resolve(result)
-      })
-    })
-  })
-}
-
-function addNodeExamplesDir(module) {
-  exampleRoots[module.name] = module.path
-  getFlowsFromPath(module.path).then(function(result) {
-    exampleFlows.d[module.name] = result
-  })
-}
-function removeNodeExamplesDir(module) {
-  delete exampleRoots[module]
-  delete exampleFlows.d[module]
-}
-
 module.exports = {
   init: function(app,runtime) {
     redApp = app
     log = runtime.log
     storage = runtime.storage
-    // TODO: this allows init to be called multiple times without
-    //       registering multiple instances of the listener.
-    //       It isn't.... ideal.
-    runtime.events.removeListener('node-examples-dir',addNodeExamplesDir)
-    runtime.events.on('node-examples-dir',addNodeExamplesDir)
-    runtime.events.removeListener('node-module-uninstalled',removeNodeExamplesDir)
-    runtime.events.on('node-module-uninstalled',removeNodeExamplesDir)
-
   },
   register: createLibrary,
-
   getAll: function(req,res) {
     storage.getAllFlows('/').then(function(flows) {
-      log.audit({event: 'library.get.all',type:'flow'},req)
-      if (exampleCount > 0) {
-        flows.d = flows.d||{}
-        flows.d._examples_ = exampleFlows
-      }
+      console.log('-------------------flows', flows)
       res.json(flows)
     })
   },
-
   get: function(req,res) {
-    if (req.params[0].indexOf('_examples_/') === 0) {
-      var m = /^_examples_\/([^\/]+)\/(.*)$/.exec(req.params[0])
-      if (m) {
-        var module = m[1]
-        var path = m[2]+'.json'
-        if (exampleRoots[module]) {
-          var fullPath = fspath.join(exampleRoots[module],path)
-          try {
-            fs.statSync(fullPath)
-            log.audit({event: 'library.get',type:'flow',path:req.params[0]},req)
-            return res.sendFile(fullPath,{
-              headers:{
-                'Content-Type': 'application/json'
-              }
-            })
-          } catch(err) {
-            console.log(err)
-          }
+    storage.getFlow(req.params[0]).then(function(data) {
+      // data is already a JSON string
+      log.audit({event: 'library.get',type:'flow',path:req.params[0]},req)
+      res.set('Content-Type', 'application/json')
+      res.send(data)
+    }).otherwise(function(err) {
+      if (err) {
+        if (err.code === 'forbidden') {
+          log.audit({event: 'library.get',type:'flow',path:req.params[0],error:'forbidden'},req)
+          res.status(403).end()
+          return
         }
       }
-      // IF we get here, we didn't find the file
       log.audit({event: 'library.get',type:'flow',path:req.params[0],error:'not_found'},req)
-      return res.status(404).end()
-    } else {
-      storage.getFlow(req.params[0]).then(function(data) {
-        // data is already a JSON string
-        log.audit({event: 'library.get',type:'flow',path:req.params[0]},req)
-        res.set('Content-Type', 'application/json')
-        res.send(data)
-      }).otherwise(function(err) {
-        if (err) {
-          if (err.code === 'forbidden') {
-            log.audit({event: 'library.get',type:'flow',path:req.params[0],error:'forbidden'},req)
-            res.status(403).end()
-            return
-          }
-        }
-        log.audit({event: 'library.get',type:'flow',path:req.params[0],error:'not_found'},req)
-        res.status(404).end()
-      })
-    }
+      res.status(404).end()
+    })
   },
   post: function(req,res) {
     var flow = JSON.stringify(req.body)
