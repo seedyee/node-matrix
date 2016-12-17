@@ -1,12 +1,10 @@
-const needsPermission = require('./auth').needsPermission
-
 let redApp = null
 let storage
 let log
 
 function createLibrary(type) {
   if (redApp) {
-    redApp.get(new RegExp('/library/'+type+'($|\/(.*))'),needsPermission('library.read'),function(req,res) {
+    redApp.get(new RegExp('/library/'+type+'($|\/(.*))'), function(req,res) {
       var path = req.params[1]||''
       storage.getLibraryEntry(type,path).then(function(result) {
         log.audit({event: 'library.get',type:type},req)
@@ -30,7 +28,7 @@ function createLibrary(type) {
       })
     })
 
-    redApp.post(new RegExp('/library/'+type+'\/(.*)'),needsPermission('library.write'),function(req,res) {
+    redApp.post(new RegExp('/library/'+type+'\/(.*)'), function(req,res) {
       var path = req.params[0]
       var meta = req.body
       var text = meta.text

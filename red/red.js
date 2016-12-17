@@ -7,13 +7,12 @@ module.exports = class Dot {
     runtime.init()
     api.init(httpServer, runtime)
 
-    const { adminApp, nodeApp, server, comms, library, auth } = api
+    const { adminApp, nodeApp, server, comms, library } = api
     this.adminApp = adminApp
     this.nodeApp = nodeApp
     this.server = server
     this.comms = comms
     this.library = library
-    this.auth = auth
 
     const { nodes, log, settings, util, version } = runtime
     this.log = log

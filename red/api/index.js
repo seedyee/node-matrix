@@ -14,8 +14,6 @@ const info = require('./info')
 const theme = require('./theme')
 const locales = require('./locales')
 const comms = require('./comms')
-const auth = require('./auth')
-const needsPermission = auth.needsPermission
 
 let log
 let adminApp
@@ -50,7 +48,6 @@ function init(_server, _runtime) {
   nodeApp = express()
   comms.init(server, runtime)
   adminApp = express()
-  auth.init(runtime)
   flows.init(runtime)
   flow.init(runtime)
   info.init(runtime)
@@ -72,10 +69,10 @@ function init(_server, _runtime) {
 
   editorApp.get('/', ensureRuntimeStarted, ui.ensureSlash, ui.editor)
   editorApp.get('/icons/:icon', ui.icon)
-  theme.init(runtime)
-  if (settings.editorTheme) {
-    editorApp.use('/theme', theme.app())
-  }
+  // theme.init(runtime)
+  // if (settings.editorTheme) {
+  //   editorApp.use('/theme', theme.app())
+  // }
   editorApp.use('/', ui.editorResources)
   adminApp.use(editorApp)
 
@@ -83,45 +80,32 @@ function init(_server, _runtime) {
   adminApp.use(bodyParser.json({ limit }))
   adminApp.use(bodyParser.urlencoded({ limit, extended:true }))
 
-  adminApp.get('/auth/login', auth.login, errorHandler)
-
-  if (settings.adminAuth) {
-    //TODO: all passport references ought to be in ./auth
-    adminApp.use(passport.initialize())
-    adminApp.post('/auth/token',
-                  auth.ensureClientSecret,
-                  auth.authenticateClient,
-                  auth.getToken,
-                  auth.errorHandler
-    )
-    adminApp.post('/auth/revoke',needsPermission(''),auth.revoke,errorHandler)
-  }
   if (settings.httpAdminCors) {
     var corsHandler = cors(settings.httpAdminCors)
     adminApp.use(corsHandler)
   }
 
   // Flows
-  adminApp.get('/flows', needsPermission('flows.read'), flows.get, errorHandler)
-  adminApp.post('/flows', needsPermission('flows.write'),flows.post,errorHandler)
+  adminApp.get('/flows', flows.get, errorHandler)
+  adminApp.post('/flows', flows.post,errorHandler)
 
-  adminApp.get('/flow/:id', needsPermission('flows.read'), flow.get,errorHandler)
-  adminApp.post('/flow', needsPermission('flows.write'), flow.post,errorHandler)
-  adminApp.delete('/flow/:id', needsPermission('flows.write'), flow.delete,errorHandler)
-  adminApp.put('/flow/:id', needsPermission('flows.write'), flow.put,errorHandler)
+  adminApp.get('/flow/:id', flow.get,errorHandler)
+  adminApp.post('/flow', flow.post,errorHandler)
+  adminApp.delete('/flow/:id', flow.delete,errorHandler)
+  adminApp.put('/flow/:id', flow.put,errorHandler)
 
   // Nodes
-  adminApp.get('/nodes', needsPermission('nodes.read'),nodes.getAll,errorHandler)
+  adminApp.get('/nodes', nodes.getAll,errorHandler)
 
   adminApp.get(/locales\/(.+)\/?$/, locales, errorHandler)
 
   // Library
-  adminApp.post(new RegExp('/library/flows\/(.*)'), needsPermission('library.write'),library.post,errorHandler)
-  adminApp.get('/library/flows', needsPermission('library.read'),library.getAll,errorHandler)
-  adminApp.get(new RegExp('/library/flows\/(.*)'), needsPermission('library.read'),library.get,errorHandler)
+  adminApp.post(new RegExp('/library/flows\/(.*)'), library.post,errorHandler)
+  adminApp.get('/library/flows', library.getAll,errorHandler)
+  adminApp.get(new RegExp('/library/flows\/(.*)'), library.get,errorHandler)
 
   // Settings
-  adminApp.get('/settings', needsPermission('settings.read'), info.settings,errorHandler)
+  adminApp.get('/settings', info.settings,errorHandler)
   // Error Handler
   //adminApp.use(errorHandler)
 }
@@ -143,7 +127,8 @@ module.exports = {
     register: library.register
   },
   auth: {
-    needsPermission: auth.needsPermission
+    // backword compatible
+    needsPermission: () => (req, res, next) => { next() },
   },
   comms: {
     publish: comms.publish

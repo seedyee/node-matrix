@@ -267,27 +267,26 @@ var localfilesystem = {
     }
     return writeFile(globalSettingsFile,JSON.stringify(settings,null,1))
   },
-  getSessions: function() {
-    return when.promise(function(resolve,reject) {
-      fs.readFile(sessionsFile,'utf8',function(err,data){
-        if (!err) {
-          try {
-            return resolve(JSON.parse(data))
-          } catch(err2) {
-            log.trace('Corrupted sessions file - resetting')
-          }
-        }
-        resolve({})
-      })
-    })
-  },
-  saveSessions: function(sessions) {
-    if (settings.readOnly) {
-      return when.resolve()
-    }
-    return writeFile(sessionsFile,JSON.stringify(sessions))
-  },
-
+  // getSessions: function() {
+  //   return when.promise(function(resolve,reject) {
+  //     fs.readFile(sessionsFile,'utf8',function(err,data){
+  //       if (!err) {
+  //         try {
+  //           return resolve(JSON.parse(data))
+  //         } catch(err2) {
+  //           log.trace('Corrupted sessions file - resetting')
+  //         }
+  //       }
+  //       resolve({})
+  //     })
+  //   })
+  // },
+  // saveSessions: function(sessions) {
+  //   if (settings.readOnly) {
+  //     return when.resolve()
+  //   }
+  //   return writeFile(sessionsFile,JSON.stringify(sessions))
+  // },
   getLibraryEntry: function(type,path) {
     var root = fspath.join(libDir,type)
     var rootPath = fspath.join(libDir,type,path)

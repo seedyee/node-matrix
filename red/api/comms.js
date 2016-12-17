@@ -23,120 +23,53 @@ function init(_server,runtime) {
 }
 
 function start() {
-  var Tokens = require('./auth/tokens')
-  var Users = require('./auth/users')
-  var Permissions = require('./auth/permissions')
-  if (!settings.disableEditor) {
-    Users.default().then(function(anonymousUser) {
-      var webSocketKeepAliveTime = settings.webSocketKeepAliveTime || 15000
-      var path = settings.httpAdminRoot || '/'
-      path = (path.slice(0,1) != '/' ? '/':'') + path + (path.slice(-1) == '/' ? '':'/') + 'comms'
-      wsServer = new ws.Server({
-        server:server,
-        path:path,
-        // Disable the deflate option due to this issue
-        //  https://github.com/websockets/ws/pull/632
-        // that is fixed in the 1.x release of the ws module
-        // that we cannot currently pickup as it drops node 0.10 support
-        perMessageDeflate: false
-      })
+  var webSocketKeepAliveTime = settings.webSocketKeepAliveTime || 15000
+  var path = settings.httpEditorRoot
+  path = (path.slice(0,1) != '/' ? '/':'') + path + (path.slice(-1) == '/' ? '':'/') + 'comms'
+  wsServer = new ws.Server({
+    server:server,
+    path:path,
+    // Disable the deflate option due to this issue
+    //  https://github.com/websockets/ws/pull/632
+    // that is fixed in the 1.x release of the ws module
+    // that we cannot currently pickup as it drops node 0.10 support
+    perMessageDeflate: false
+  })
 
-      wsServer.on('connection',function(ws) {
-        log.audit({event: 'comms.open'})
-        var pendingAuth = (settings.adminAuth != null)
-        if (!pendingAuth) {
-          activeConnections.push(ws)
-        } else {
-          pendingConnections.push(ws)
-        }
-        ws.on('close',function() {
-          log.audit({event: 'comms.close',user:ws.user})
-          removeActiveConnection(ws)
-          removePendingConnection(ws)
-        })
-        ws.on('message', function(data,flags) {
-          var msg = null
-          try {
-            msg = JSON.parse(data)
-          } catch(err) {
-            log.trace('comms received malformed message : '+err.toString())
-            return
-          }
-          if (!pendingAuth) {
-            if (msg.subscribe) {
-              handleRemoteSubscription(ws,msg.subscribe)
-            }
-          } else {
-            var completeConnection = function(userScope,sendAck) {
-              try {
-                if (!userScope || !Permissions.hasPermission(userScope,'status.read')) {
-                  ws.send(JSON.stringify({auth:'fail'}))
-                  ws.close()
-                } else {
-                  pendingAuth = false
-                  removePendingConnection(ws)
-                  activeConnections.push(ws)
-                  if (sendAck) {
-                    ws.send(JSON.stringify({auth:'ok'}))
-                  }
-                }
-              } catch(err) {
-                // Just in case the socket closes before we attempt
-                // to send anything.
-              }
-            }
-            if (msg.auth) {
-              Tokens.get(msg.auth).then(function(client) {
-                if (client) {
-                  Users.get(client.user).then(function(user) {
-                    if (user) {
-                      ws.user = user
-                      log.audit({event: 'comms.auth',user:ws.user})
-                      completeConnection(client.scope,true)
-                    } else {
-                      log.audit({event: 'comms.auth.fail'})
-                      completeConnection(null,false)
-                    }
-                  })
-                } else {
-                  log.audit({event: 'comms.auth.fail'})
-                  completeConnection(null,false)
-                }
-              })
-            } else {
-              if (anonymousUser) {
-                log.audit({event: 'comms.auth',user:anonymousUser})
-                completeConnection(anonymousUser.permissions,false)
-              } else {
-                log.audit({event: 'comms.auth.fail'})
-                completeConnection(null,false)
-              }
-              //TODO: duplicated code - pull non-auth message handling out
-              if (msg.subscribe) {
-                handleRemoteSubscription(ws,msg.subscribe)
-              }
-            }
-          }
-        })
-        ws.on('error', function(err) {
-          log.warn(log._('comms.error',{message:err.toString()}))
-        })
-      })
-
-      wsServer.on('error', function(err) {
-        log.warn(log._('comms.error-server',{message:err.toString()}))
-      })
-
-      lastSentTime = Date.now()
-
-      heartbeatTimer = setInterval(function() {
-        var now = Date.now()
-        if (now-lastSentTime > webSocketKeepAliveTime) {
-          publish('hb',lastSentTime)
-        }
-      }, webSocketKeepAliveTime)
+  wsServer.on('connection', function(ws) {
+    activeConnections.push(ws)
+    ws.on('close',function() {
+      removeActiveConnection(ws)
     })
-  }
+    ws.on('message', function(data, flags) {
+      var msg = null
+      try {
+        msg = JSON.parse(data)
+      } catch(err) {
+        log.trace('comms received malformed message : '+err.toString())
+        return
+      }
+      if (msg.subscribe) {
+        handleRemoteSubscription(ws,msg.subscribe)
+      }
+    })
+    ws.on('error', function(err) {
+      log.warn(log._('comms.error',{message:err.toString()}))
+    })
+  })
+
+  wsServer.on('error', function(err) {
+    log.warn(log._('comms.error-server',{message:err.toString()}))
+  })
+
+  lastSentTime = Date.now()
+
+  heartbeatTimer = setInterval(function() {
+    var now = Date.now()
+    if (now-lastSentTime > webSocketKeepAliveTime) {
+      publish('hb',lastSentTime)
+    }
+  }, webSocketKeepAliveTime)
 }
 
 function stop() {
@@ -170,7 +103,6 @@ function publishTo(ws,topic,data) {
     ws.send(msg)
   } catch(err) {
     removeActiveConnection(ws)
-    removePendingConnection(ws)
     log.warn(log._('comms.error-send',{message:err.toString()}))
   }
 }
@@ -188,15 +120,6 @@ function removeActiveConnection(ws) {
   for (var i=0; i<activeConnections.length; i++) {
     if (activeConnections[i] === ws) {
       activeConnections.splice(i,1)
-      break
-    }
-  }
-}
-
-function removePendingConnection(ws) {
-  for (var i=0; i<pendingConnections.length; i++) {
-    if (pendingConnections[i] === ws) {
-      pendingConnections.splice(i,1)
       break
     }
   }
