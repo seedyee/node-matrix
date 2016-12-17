@@ -2,26 +2,9 @@ const when = require('when')
 const Path = require('path')
 const crypto = require('crypto')
 const log = require('../log')
+const storageModule = require('./localfilesystem')
 
 var runtime
-var storageModule
-var settingsAvailable
-var sessionsAvailable
-
-function moduleSelector(aSettings) {
-  var toReturn
-  if (aSettings.storageModule) {
-    if (typeof aSettings.storageModule === 'string') {
-      // TODO: allow storage modules to be specified by absolute path
-      toReturn = require('./'+aSettings.storageModule)
-    } else {
-      toReturn = aSettings.storageModule
-    }
-  } else {
-    toReturn = require('./localfilesystem')
-  }
-  return toReturn
-}
 
 function is_malicious(path) {
   return path.indexOf('../') != -1 || path.indexOf('..\\') != -1
@@ -30,13 +13,6 @@ function is_malicious(path) {
 var storageModuleInterface = {
   init: function(_runtime) {
     runtime = _runtime
-    try {
-      storageModule = moduleSelector(runtime.settings)
-      settingsAvailable = storageModule.hasOwnProperty('getSettings') && storageModule.hasOwnProperty('saveSettings')
-      sessionsAvailable = storageModule.hasOwnProperty('getSessions') && storageModule.hasOwnProperty('saveSessions')
-    } catch (e) {
-      return when.reject(e)
-    }
     return storageModule.init(runtime.settings)
   },
   getFlows: function() {
@@ -46,36 +22,11 @@ var storageModuleInterface = {
     return storageModule.saveFlows(config.flows)
   },
   getSettings: function() {
-    if (settingsAvailable) {
-      return storageModule.getSettings()
-    } else {
-      return when.resolve(null)
-    }
+    return storageModule.getSettings()
   },
   saveSettings: function(settings) {
-    if (settingsAvailable) {
-      return storageModule.saveSettings(settings)
-    } else {
-      return when.resolve()
-    }
+    return storageModule.saveSettings(settings)
   },
-  getSessions: function() {
-    if (sessionsAvailable) {
-      return storageModule.getSessions()
-    } else {
-      return when.resolve(null)
-    }
-  },
-  saveSessions: function(sessions) {
-    if (sessionsAvailable) {
-      return storageModule.saveSessions(sessions)
-    } else {
-      return when.resolve()
-    }
-  },
-
-  /* Library Functions */
-
   getLibraryEntry: function(type, path) {
     if (is_malicious(path)) {
       var err = new Error()
@@ -101,6 +52,7 @@ var storageModuleInterface = {
       return listFlows('/')
     }
   },
+
   getFlow: function(fn) {
     if (is_malicious(fn)) {
       var err = new Error()
