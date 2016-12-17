@@ -1,19 +1,18 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const util = require('util')
 const path = require('path')
-const passport = require('passport')
 const when = require('when')
 const cors = require('cors')
+
 const ui = require('./ui')
 const nodes = require('./nodes')
 const flows = require('./flows')
 const flow = require('./flow')
 const library = require('./library')
-const info = require('./info')
 const locales = require('./locales')
 const comms = require('./comms')
 
+let settings
 let log
 let adminApp
 let nodeApp
@@ -21,12 +20,7 @@ let server
 let runtime
 
 const errorHandler = function(err, req, res, next) {
-  if (err.message === 'request entity too large') {
-    log.error(err)
-  } else {
-    console.log(err.stack)
-  }
-  log.audit({event: 'api.error',error: err.code || 'unexpected_error', message:err.toString() }, req)
+  if (err) log.error(err)
   res.status(400).json({error:'unexpected_error', message:err.toString()})
 }
 
@@ -42,18 +36,18 @@ const ensureRuntimeStarted = function(req, res, next) {
 function init(_server, _runtime) {
   server = _server
   runtime = _runtime
-  const settings = runtime.settings
+  settings = runtime.settings
   log = runtime.log
   nodeApp = express()
   comms.init(server, runtime)
   adminApp = express()
   flows.init(runtime)
   flow.init(runtime)
-  info.init(runtime)
-  library.init(adminApp,runtime)
+  library.init(adminApp, runtime)
   nodes.init(runtime)
 
   ui.init(runtime)
+
   const editorApp = express()
   editorApp.get('/', ensureRuntimeStarted, ui.ensureSlash, ui.editor)
   editorApp.get('/icons/:icon', ui.icon)
@@ -62,7 +56,7 @@ function init(_server, _runtime) {
 
   const limit = settings.apiMaxLength
   adminApp.use(bodyParser.json({ limit }))
-  adminApp.use(bodyParser.urlencoded({ limit, extended:true }))
+  adminApp.use(bodyParser.urlencoded({ limit, extended: true }))
 
   if (settings.httpAdminCors) {
     var corsHandler = cors(settings.httpAdminCors)
@@ -89,7 +83,12 @@ function init(_server, _runtime) {
   adminApp.get(new RegExp('/library/flows\/(.*)'), library.get,errorHandler)
 
   // Settings
-  adminApp.get('/settings', info.settings,errorHandler)
+  adminApp.get('/settings', (req, res) => {
+    const { httpNodeRoot, version, paletteCategories, flowFilePretty} = settings
+    res.json({ httpNodeRoot, version, paletteCategories, flowFilePretty, user: req.user})
+
+  },errorHandler)
+
   // Error Handler
   //adminApp.use(errorHandler)
 }
