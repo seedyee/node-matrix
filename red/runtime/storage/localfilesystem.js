@@ -13,34 +13,6 @@ const globalSettingsFile = fspath.join(settings.userDir, '.config.json')
 
 var promiseDir = nodeFn.lift(mkdirp)
 
-function getFileMeta(root,path) {
-  var fn = fspath.join(root,path)
-  var fd = fs.openSync(fn,'r')
-  var size = fs.fstatSync(fd).size
-  var meta = {}
-  var read = 0
-  var length = 10
-  var remaining = ''
-  var buffer = Buffer(length)
-  while(read < size) {
-    read+=fs.readSync(fd,buffer,0,length)
-    var data = remaining+buffer.toString()
-    var parts = data.split('\n')
-    remaining = parts.splice(-1)
-    for (var i=0; i<parts.length; i+=1) {
-      var match = /^\/\/ (\w+): (.*)/.exec(parts[i])
-      if (match) {
-        meta[match[1]] = match[2]
-      } else {
-        read = size
-        break
-      }
-    }
-  }
-  fs.closeSync(fd)
-  return meta
-}
-
 function getFileBody(root,path) {
   var body = ''
   var fn = fspath.join(root,path)
