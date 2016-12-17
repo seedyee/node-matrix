@@ -7,12 +7,10 @@ const forOwn = require('lodash/forOwn')
 const localfilesystem = require('./localfilesystem')
 const registry = require('./registry')
 
-let settings
 let runtime
 
 function init(_runtime) {
   runtime = _runtime
-  settings = runtime.settings
   localfilesystem.init(runtime)
 }
 

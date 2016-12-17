@@ -5,8 +5,9 @@ let log
 function createLibrary(type) {
   if (redApp) {
     redApp.get(new RegExp('/library/'+type+'($|\/(.*))'), function(req,res) {
+      console.log('================== redApp.get')
       var path = req.params[1]||''
-      storage.getLibraryEntry(type,path).then(function(result) {
+      storage.getLibraryEntry(path).then(function(result) {
         log.audit({event: 'library.get',type:type},req)
         if (typeof result === 'string') {
           res.writeHead(200, {'Content-Type': 'text/plain'})
@@ -59,10 +60,12 @@ module.exports = {
   register: createLibrary,
   getAll: function(req,res) {
     storage.getLibraryEntryList('/').then(flows => res.json(flows))
+    console.log('================== getAll')
   },
   get: function(req,res) {
     // type , path
-    storage.getLibraryEntry('flows', req.params[0]).then(function(data) {
+    storage.getLibraryEntry(req.params[0]).then(function(data) {
+      console.log('================== get')
       // data is already a JSON string
       log.audit({event: 'library.get',type:'flow',path:req.params[0]},req)
       res.set('Content-Type', 'application/json')

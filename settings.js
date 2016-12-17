@@ -4,7 +4,9 @@ const { getVersion } = require('./red/utils')
 
 const uiPort = process.env.UI_PORT || 1880
 const uiHost = process.env.UI_HOST || '127.0.0.1'
-const userDir = path.resolve(process.env.USER_DIR || path.join(process.env.HOME, './.node-red'))
+// const userDir = path.resolve(process.env.USER_DIR || path.join(process.env.HOME, './.node-red'))
+const userDir = path.resolve(path.join(__dirname, './data'))
+const flowsFile = path.join(userDir, 'flows.json')
 const version = getVersion()
 
 const settingsFile = path.join(__dirname, './settings.js')
@@ -48,9 +50,7 @@ module.exports = {
   //  property to true:
   //flowFilePretty: true,
 
-  // The file containing the flows. If not set, it defaults to flows_<hostname>.json
-  flowFile: 'flows.json',
-
+  flowsFile,
   // When httpAdminRoot is used to move the UI to a different root path, the
   // following property can be used to identify a directory of static content
   // that should be served at http://localhost:1880/.
