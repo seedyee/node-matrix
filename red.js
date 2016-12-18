@@ -1,15 +1,13 @@
 const http = require('http')
 const https = require('https')
 const express = require('express')
-const crypto = require('crypto')
-const bcrypt = require('bcryptjs')
 const path = require('path')
 
-const Dot = require('./red/red.js')
+const Matrix = require('./red/red.js')
 
 const settings = require('./settings')
 
-const listenpath = `${settings.https ? 'https' : 'http'}://${settings.uiHost}:${settings.uiPort}${settings.httpEditorRoot}`
+const listenPath = `${settings.https ? 'https' : 'http'}://${settings.uiHost}:${settings.uiPort}${settings.httpEditorRoot}`
 let server
 const app = express()
 
@@ -19,41 +17,41 @@ if (settings.https) {
   server = http.createServer(app)
 }
 server.setMaxListeners(0)
-const dot = new Dot(server)
+const matrix = new Matrix(server)
 
-app.use(settings.httpEditorRoot, dot.adminApp)
-app.use(settings.httpNodeRoot, dot.nodeApp)
+app.use(settings.httpEditorRoot, matrix.adminApp)
+app.use(settings.httpNodeRoot, matrix.nodeApp)
 
 if (settings.httpStatic) {
   app.use('/', express.static(settings.httpStatic))
 }
 
-dot.start().then(function() {
+matrix.start().then(function() {
   server.on('error', function(err) {
     if (err.errno === 'EADDRINUSE') {
-      dot.log.error(`server.unable-to-listen ${listenpath}`)
+      matrix.log.error(`server unable to listen ${listenPath}`)
     } else {
-      dot.log.error('server.uncaught-exception')
-      dot.log.error(err.stack || err)
+      matrix.log.error('server uncaught exception')
+      matrix.log.error(err.stack || err)
     }
     process.exit(1)
   })
   server.listen(settings.uiPort, settings.uiHost, function() {
-    dot.log.info(`server.now-running ${listenpath}`)
+    matrix.log.info(`server now running on: ${listenPath}`)
   })
-}).otherwise(function(err) {
-  dot.log.error('server.failed-to-start')
-  dot.log.error(err.stack || err)
+}).catch(function(err) {
+  matrix.log.error('server failed to start')
+  matrix.log.error(err.stack || err)
 })
 
 process.on('uncaughtException', function(err) {
-  console.log('[red] Uncaught Exception:')
+  console.log('[matrix] Uncaught Exception:')
   console.log(err.stack || err)
   process.exit(1)
 })
 
 process.on('SIGINT', function () {
-  dot.stop()
+  matrix.stop()
   // TODO: need to allow nodes to close asynchronously before terminating the
   // process - ie, promises
   process.exit()

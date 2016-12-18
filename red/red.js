@@ -2,7 +2,7 @@ const runtime = require('./runtime')
 const api = require('./api')
 const userSettings = require('../settings')
 
-module.exports = class Dot {
+module.exports = class Matrix {
   constructor(httpServer) {
     runtime.init()
     api.init(httpServer, runtime)
