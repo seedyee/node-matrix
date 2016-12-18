@@ -6,7 +6,7 @@ const forOwn = require('lodash/forOwn')
 const util = require('util')
 const events = require('../events')
 
-const dotsPath = require('../../dotsLoader')
+const dotsMap = require('../../dotsLoader')
 
 function createDot(path) {
   const parts = path.split('/')
@@ -29,9 +29,8 @@ function createDotFiles(paths) {
 
 const nodeList = []
 let allNodeConfigs
-const nodesMap = createDotFiles(dotsPath)
+const nodesMap = createDotFiles(dotsMap)
 
-// console.log('-----------dot', createDotFiles(dotsPath)['node-red'])
 function load() {
 
   const nodeConfigs = []
@@ -40,11 +39,11 @@ function load() {
   })
 
   nodeConfigs.forEach(node => {
+    const { name, module, id, types, version } = node
     nodesMap[node.name] = node
-    const nodeInfo = createNodeInfo(node)
-    nodeList.push(nodeInfo)
-    allNodeConfigs += node.config
-    allNodeConfigs += node.help
+    nodeList.push({id, name, types, version, module })
+    allNodeConfigs += node.mainContent
+    allNodeConfigs += node.helpContent
     const red = createNodeApi(node.id)
     require(node.file)(red)
   })
@@ -60,7 +59,7 @@ function getNode(id) {
   return parts[parts.length - 1]
 }
 
-function registerNodeConstructor(nodeSet, type, constructor) {
+function registerType(nodeSet, type, constructor) {
   if (nodeConstructors.hasOwnProperty(type)) {
     throw new Error(type+' already registered')
   }
@@ -84,18 +83,6 @@ function getNodeConstructor(type) {
 }
 //=====================================================================
 
-function createNodeInfo(node) {
-  const { id, module, name, version, types } = node
-  return {
-    id: id || `${module}/${name}`,
-    name,
-    types,
-    enabled: true,
-    local: false,
-    version,
-    module,
-  }
-}
 
 let runtime
 function init(_runtime) {
@@ -116,9 +103,8 @@ function loadNodeConfig(nodeMeta) {
     file,
     template,
     types: [],
-    version: version,
-    local: 'en-US',
   }
+
   const content = fs.readFileSync(template, 'utf8')
   let regExp = /(<script[^>]* data-help-name=[\s\S]*?<\/script>)/gi
   match = null
@@ -132,9 +118,8 @@ function loadNodeConfig(nodeMeta) {
     helpContent += help
   }
   mainContent += content.substring(index)
-  node.config = mainContent
-  node.help = helpContent
-  node.namespace = node.module
+  node.mainContent = mainContent
+  node.helpContent = helpContent
   return node
 }
 
@@ -187,7 +172,7 @@ function createNodeApi(nodeId) {
 module.exports = {
   init: init,
   load: load,
-  registerType: registerNodeConstructor,
+  registerType,
   get: getNodeConstructor,
   getNodeList: function() {return nodeList },
   getNodeConfigs: function() { return allNodeConfigs },
