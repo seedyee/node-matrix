@@ -77,29 +77,21 @@ function createDotFiles(paths) {
   forOwn(paths, (value, key) => {
     nodes[key] = createDot(value)
   })
-  const result = {
-    'node-red': {
-      name: 'node-red',
-      version: '0.15.2',
-      nodes,
-    }
-  }
-  return result
+  return nodes
 }
 
 const nodeList = []
 let allNodeConfigs
-const nodeFiles = createDotFiles(dotsPath)
+const nodesMap = createDotFiles(dotsPath)
 
 // console.log('-----------dot', createDotFiles(dotsPath)['node-red'])
 function load() {
+
   const nodeConfigs = []
-  forOwn(nodeFiles, module => {
-    const { nodes } = module
-    forOwn(nodes, nodeMeta => {
-      nodeConfigs.push(loadNodeConfig(nodeMeta))
-    })
+  forOwn(nodesMap, node => {
+    nodeConfigs.push(loadNodeConfig(node))
   })
+
   nodeConfigs.forEach(node => {
     addNodeSet(node)
     const nodeInfo = createNodeInfo(node)
@@ -117,8 +109,8 @@ var Node
 var nodeConstructors = {}
 
 function addNodeSet(set) {
-  const { module, name } = set
-  nodeFiles[module].nodes[name] = set
+  const { name } = set
+  nodesMap[name] = set
 }
 
 function getModule(id) {
@@ -138,8 +130,7 @@ function registerNodeConstructor(nodeSet, type, constructor) {
   if(!(constructor.prototype instanceof Node)) {
     util.inherits(constructor, Node)
   }
-  const module = nodeFiles[getModule(nodeSet)]
-  const nodeSetInfo =  module.nodes[getNode(nodeSet)]
+  const nodeSetInfo = nodesMap[getNode(nodeSet)]
   if (nodeSetInfo.types.indexOf(type) === -1) {
     // A type is being registered for a known set, but for some reason
     // we didn't spot it when parsing the HTML file.
