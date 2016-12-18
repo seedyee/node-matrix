@@ -89,10 +89,6 @@ function registerType(nodeSet, type, constructor) {
   events.emit('type-registered', type)
 }
 
-function getNodeConstructor(type) {
-  return nodeConstructors[type]
-}
-
 function createNodeApi(nodeId) {
   const {
     createNode,
@@ -143,7 +139,7 @@ module.exports = {
   init: init,
   load: load,
   registerType,
-  get: getNodeConstructor,
-  getNodeList: function() {return nodeList },
-  getNodeConfigs: function() { return allNodeConfigs },
+  getType: function (type) { return nodeConstructors[type] },
+  getNodeList: function() { return nodeList },
+  getAllNodeConfigs: function() { return allNodeConfigs },
 }

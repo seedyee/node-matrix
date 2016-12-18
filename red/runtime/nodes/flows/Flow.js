@@ -247,7 +247,7 @@ function Flow(global,flow) {
 
 function createNode(type,config) {
     var nn = null;
-    var nt = typeRegistry.get(type);
+    var nt = typeRegistry.getType(type);
     if (nt) {
         var conf = clone(config);
         delete conf.credentials;

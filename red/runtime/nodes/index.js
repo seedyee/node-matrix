@@ -49,7 +49,7 @@ module.exports = {
   getType: registry.get,
 
   getNodeList: registry.getNodeList,
-  getNodeConfigs: registry.getNodeConfigs,
+  getAllNodeConfigs: registry.getAllNodeConfigs,
 
   cleanModuleList: registry.cleanModuleList,
 

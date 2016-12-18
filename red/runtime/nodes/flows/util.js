@@ -84,7 +84,7 @@ module.exports = {
       if (n.type !== 'subflow' && n.type !== 'tab') {
         var subflowDetails = subflowInstanceRE.exec(n.type);
 
-        if ( (subflowDetails && !flow.subflows[subflowDetails[1]]) || (!subflowDetails && !typeRegistry.get(n.type)) ) {
+        if ( (subflowDetails && !flow.subflows[subflowDetails[1]]) || (!subflowDetails && !typeRegistry.getType(n.type)) ) {
           if (flow.missingTypes.indexOf(n.type) === -1) {
             flow.missingTypes.push(n.type);
           }

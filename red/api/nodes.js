@@ -8,7 +8,7 @@ module.exports = {
     if (req.get('accept') == 'application/json') {
       res.json(redNodes.getNodeList())
     } else {
-      res.send(redNodes.getNodeConfigs())
+      res.send(redNodes.getAllNodeConfigs())
     }
   },
 }
