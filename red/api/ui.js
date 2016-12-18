@@ -20,6 +20,7 @@ const themeContext = {
 
 const icon_paths = [path.resolve(__dirname + '/../../public/icons')]
 const iconCache = {}
+//TODO: create a default icon
 const defaultIcon = path.resolve(__dirname + '/../../public/icons/arrow-in.png')
 const templatePath = path.resolve(__dirname + '/../../editor/templates/index.mst')
 let editorTemplate
@@ -40,14 +41,13 @@ module.exports = {
       next()
     }
   },
-
   icon: function(req,res) {
     const iconName = req.params.icon
     if (iconCache[iconName]) {
       res.sendFile(iconCache[iconName])
     } else {
-      icon_paths.forEach(p => {
-        var iconPath = path.join(p, iconName)
+      for (let p=0; p<icon_paths.length; p++) {
+        var iconPath = path.join(icon_paths[p],iconName)
         try {
           fs.statSync(iconPath)
           res.sendFile(iconPath)
@@ -56,7 +56,7 @@ module.exports = {
         } catch(err) {
           // iconPath doesn't exist
         }
-      })
+      }
       res.sendFile(defaultIcon)
     }
   },

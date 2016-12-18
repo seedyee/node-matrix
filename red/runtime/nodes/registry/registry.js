@@ -122,9 +122,6 @@ function inheritNode(constructor) {
     proto.constructor.super_ = Node
     if(Object.setPrototypeOf) {
       Object.setPrototypeOf(proto, Node.prototype)
-    } else {
-      // hack for node v0.10
-      proto.__proto__ = Node.prototype
     }
   }
 }
@@ -133,14 +130,11 @@ function registerNodeConstructor(nodeSet,type,constructor) {
   if (nodeConstructors.hasOwnProperty(type)) {
     throw new Error(type+' already registered')
   }
-  //TODO: Ensure type is known - but doing so will break some tests
-  //      that don't have a way to register a node template ahead
-  //      of registering the constructor
   if(!(constructor.prototype instanceof Node)) {
     inheritNode(constructor)
   }
 
-  var nodeSetInfo = getFullNodeInfo(nodeSet)
+  const nodeSetInfo = getFullNodeInfo(nodeSet)
   if (nodeSetInfo) {
     if (nodeSetInfo.types.indexOf(type) === -1) {
       // A type is being registered for a known set, but for some reason

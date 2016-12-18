@@ -42,16 +42,17 @@ function getLocalNodeFiles(dir) {
   }
 
   files.forEach(function(fn) {
-    const stats = fs.statSync(path.join(dir,fn))
+    const filePath = path.join(dir,fn)
+    const stats = fs.statSync(filePath)
     if (stats.isFile()) {
       if (/\.js$/.test(fn)) {
-        const info = getLocalFile(path.join(dir, fn))
+        const info = getLocalFile(filePath)
         result.push(info)
       }
     } else if (stats.isDirectory()) {
       // Ignore /.dirs/, /lib/ /node_modules/
       if (!/^(\..*|lib|icons|node_modules|test|locales)$/.test(fn)) {
-        result = result.concat(getLocalNodeFiles(path.join(dir,fn)))
+        result = result.concat(getLocalNodeFiles(filePath))
       }
     }
   })
