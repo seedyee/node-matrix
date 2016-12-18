@@ -86,50 +86,22 @@ function createDotFiles(paths) {
   }
   return result
 }
+
 // console.log('-----------dot', createDotFiles(dotsPath)['node-red'])
 function load() {
   // const nodeFiles = localfilesystem.getNodeFiles()
   const nodeFiles = createDotFiles(dotsPath)
-  return loadNodeFiles(nodeFiles)
-}
-
-function loadNodeFiles(nodeFiles) {
-  const promises = []
+  const nodeConfigs = []
   forOwn(nodeFiles, module => {
     const { nodes } = module
     forOwn(nodes, nodeMeta => {
-      try {
-        promises.push(loadNodeConfig(nodeMeta))
-      } catch(err) {
-        console.log(err)
-        //
-      }
+      nodeConfigs.push(loadNodeConfig(nodeMeta))
     })
   })
-
-  return when.all(promises).then(nodes => {
-    nodes.forEach(node => {
-      registry.addNodeSet(node)
-    })
-    return loadNodeSetList(nodes)
-  })
-}
-
-function loadNodeSetList(nodes) {
-  nodes.forEach(node => {
-    const nodeDir = path.dirname(node.file)
-    const nodeFn = path.basename(node.file)
-    try {
-      const nodeFn = require(node.file)
-      if (typeof nodeFn !== 'function') throw new Error(`Not function is exported in: ${node.file}`)
-      const red = createNodeApi(node)
-      nodeFn(red)
-      node.enabled = true
-      node.loaded = true
-    } catch(err) {
-      console.log(err)
-      node.err = err
-    }
+  nodeConfigs.forEach(node => {
+    registry.addNodeSet(node)
+    const red = createNodeApi(node.id)
+    require(node.file)(red)
   })
 }
 
@@ -145,48 +117,39 @@ function loadNodeConfig(nodeMeta) {
   const template = file.replace(/\.js$/,'.html')
   let isEnabled = true
 
-  return when.promise(function(resolve) {
-    const node = {
-      id,
-      module,
-      name,
-      file,
-      template,
-      types: [],
-      enabled: isEnabled,
-      loaded:false,
-      version: version,
-      local: 'en-US',
-    }
-
-    fs.readFile(template, 'utf8', function(err, content) {
-      if (err) {
-        node.err = (err.code === 'ENOENT') ? `Error: ${templat} does not exist` : err.toString()
-        resolve(node)
-      } else {
-        let regExp = /(<script[^>]* data-help-name=[\s\S]*?<\/script>)/gi
-        match = null
-        let mainContent = ''
-        let helpContent = {}
-        let index = 0
-        const lang = 'en-US'
-        while ((match = regExp.exec(content)) !== null) {
-          mainContent += content.substring(index, regExp.lastIndex - match[1].length)
-          index = regExp.lastIndex
-          const help = content.substring(regExp.lastIndex - match[1].length, regExp.lastIndex)
-          helpContent[lang] += help
-        }
-        mainContent += content.substring(index)
-        node.config = mainContent
-        node.help = helpContent
-        node.namespace = node.module
-        resolve(node)
-      }
-    })
-  })
+  const node = {
+    id,
+    module,
+    name,
+    file,
+    template,
+    types: [],
+    enabled: isEnabled,
+    loaded:false,
+    version: version,
+    local: 'en-US',
+  }
+  const content = fs.readFileSync(template, 'utf8')
+  let regExp = /(<script[^>]* data-help-name=[\s\S]*?<\/script>)/gi
+  match = null
+  let mainContent = ''
+  let helpContent = {}
+  let index = 0
+  const lang = 'en-US'
+  while ((match = regExp.exec(content)) !== null) {
+    mainContent += content.substring(index, regExp.lastIndex - match[1].length)
+    index = regExp.lastIndex
+    const help = content.substring(regExp.lastIndex - match[1].length, regExp.lastIndex)
+    helpContent[lang] += help
+  }
+  mainContent += content.substring(index)
+  node.config = mainContent
+  node.help = helpContent
+  node.namespace = node.module
+  return node
 }
 
-function createNodeApi(node) {
+function createNodeApi(nodeId) {
   const {
     createNode,
     getNode,
@@ -217,7 +180,7 @@ function createNodeApi(node) {
   }
   red.nodes.registerType = function(type, constructor, opts) {
     // node.id --> node-red/lower-case, type --> lower-case, constructor: func
-    runtime.nodes.registerType(node.id, type, constructor, opts)
+    runtime.nodes.registerType(nodeId, type, constructor, opts)
   }
   const adminApi = runtime.adminApi
   red.comms = adminApi.comms
@@ -232,7 +195,7 @@ function createNodeApi(node) {
   return red
 }
 
-function loadNodeHelp(node,lang) {
+function loadNodeHelp(node, lang) {
   var dir = path.dirname(node.template)
   var base = path.basename(node.template)
   var localePath = path.join(dir,'locales',lang,base)
