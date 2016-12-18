@@ -31,8 +31,8 @@ function init(_settings, _loader) {
   Node = require('../Node')
 }
 
-function load() {
-  moduleConfigs = settings.get('nodes')
+function load(nodeFiles) {
+  moduleConfigs = nodeFiles
 }
 
 function getModule(id) {
@@ -74,7 +74,6 @@ function getNodeList() {
       }
     }
   }
-  console.log(list)
   return list
 }
 

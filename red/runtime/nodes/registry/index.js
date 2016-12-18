@@ -6,11 +6,9 @@ const loader = require('./loader')
 
 function init(runtime) {
   loader.init(runtime)
-  registry.init(runtime.settings, loader)
 }
 
 function load() {
-  registry.load()
   loader.load()
   return when.resolve()
 }

@@ -65,9 +65,11 @@ function createDot(path) {
     module: 'node-red',
     version: '0.15.2',
     file: path + '.js',
+    local: false,
+    types: [],
   }
   const parts = path.split('/')
-  result.name = parts[parts.length -1].replace('/^[\d]+-/', '')
+  result.name = parts[parts.length -1].replace(/^\d+\-/, '')
   return result
 }
 
@@ -89,6 +91,7 @@ function createDotFiles(paths) {
 // console.log('-----------dot', createDotFiles(dotsPath)['node-red'])
 function load() {
   const nodeFiles = createDotFiles(dotsPath)
+  registry.load(nodeFiles)
   const nodeConfigs = []
   forOwn(nodeFiles, module => {
     const { nodes } = module
@@ -106,6 +109,7 @@ function load() {
 let runtime
 function init(_runtime) {
   runtime = _runtime
+  registry.init(runtime.settings, loader)
 }
 
 function loadNodeConfig(nodeMeta) {
@@ -220,8 +224,10 @@ function getNodeHelp(node, lang) {
   return node.help[lang]
 }
 
-module.exports = {
+var loader = {
   init: init,
   load: load,
   getNodeHelp: getNodeHelp,
 }
+
+module.exports = loader
