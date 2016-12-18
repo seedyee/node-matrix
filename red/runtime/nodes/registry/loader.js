@@ -89,11 +89,10 @@ function createDotFiles(paths) {
 
 const nodeList = []
 let allNodeConfigs
-let moduleConfigs
-let nodeFiles
+const nodeFiles = createDotFiles(dotsPath)
+
 // console.log('-----------dot', createDotFiles(dotsPath)['node-red'])
 function load() {
-  nodeFiles = moduleConfigs = createDotFiles(dotsPath)
   const nodeConfigs = []
   forOwn(nodeFiles, module => {
     const { nodes } = module
@@ -119,7 +118,7 @@ var nodeConstructors = {}
 
 function addNodeSet(set) {
   const { module, name } = set
-  moduleConfigs[module].nodes[name] = set
+  nodeFiles[module].nodes[name] = set
 }
 
 function getModule(id) {
@@ -139,7 +138,7 @@ function registerNodeConstructor(nodeSet, type, constructor) {
   if(!(constructor.prototype instanceof Node)) {
     util.inherits(constructor, Node)
   }
-  const module = moduleConfigs[getModule(nodeSet)]
+  const module = nodeFiles[getModule(nodeSet)]
   const nodeSetInfo =  module.nodes[getNode(nodeSet)]
   if (nodeSetInfo.types.indexOf(type) === -1) {
     // A type is being registered for a known set, but for some reason
