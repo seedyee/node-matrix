@@ -1,8 +1,8 @@
 const { join } = require('path')
-const { coreDotsDir } = require('../settings')
+const { coreNodesDir } = require('../settings')
 
-const p = function (relativePath, dir = coreDotsDir) {
-  return join(dir, relativePath)
+const p = function (fileName, subDir = 'core', rootDir = coreNodesDir) {
+  return join(rootDir, subDir ,fileName)
 }
 
 module.exports = {

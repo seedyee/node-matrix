@@ -5,12 +5,12 @@ const Mustache = require('mustache')
 
 const themeContext = {
   page: {
-    title: 'Dot-Matrix',
+    title: 'Node-Matrix',
     favicon: 'favicon.ico',
     tabicon: 'red/images/node-red-icon-black.svg'
   },
   header: {
-    title: 'Dot-Matrix',
+    title: 'Node-Matrix',
     image: 'red/images/node-red.png'
   },
   asset: {

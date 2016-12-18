@@ -4,7 +4,7 @@ const forOwn = require('lodash/forOwn')
 const util = require('util')
 const events = require('../events')
 
-const dotsPathMap = require('../../dotsLoader')
+const nodesPathMap = require('../../nodesLoader')
 
 let Node
 let runtime
@@ -20,32 +20,32 @@ function init(_runtime) {
   Node = require('./Node')
 }
 
-forOwn(dotsPathMap, (dotPath, dotName) => {
-  nodeConfigs.push(createDotConfig(dotPath, dotName))
+forOwn(nodesPathMap, (nodePath, nodeName) => {
+  nodeConfigs.push(createNodeConfig(nodePath, nodeName))
 })
 
 function load() {
   nodeConfigs.forEach(node => {
-    const { name, module, id, types, version } = node
+    const { name, module, id, types, version, file } = node
     nodeList.push({id, name, types, version, module })
     allNodeConfigs += node.mainContent
     allNodeConfigs += node.helpContent
-    const red = createNodeApi(node.id)
-    require(node.file)(red)
+    const nodeApi = createNodeApi(id)
+    require(file)(nodeApi)
   })
 }
 
-function createDotConfig(dotPath, dotName) {
-  // const parts = dotPath.split('/')
+function createNodeConfig(nodePath, nodeName) {
+  // const parts = nodePath.split('/')
   // const name = parts[parts.length -1].replace(/^\d+\-/, '')
   const module = 'node-red'
-  const id = `${module}/${dotName}`
-  const template = dotPath + '.html'
+  const id = `${module}/${nodeName}`
+  const template = nodePath + '.html'
   const node = {
     id,
-    name: dotName,
+    name: nodeName,
     module,
-    file: dotPath + '.js',
+    file: nodePath + '.js',
     template,
     types: [],
   }
