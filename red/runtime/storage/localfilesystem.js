@@ -69,10 +69,6 @@ function writeFile(path,content) {
 }
 
 const localfilesystem = {
-  init: function() {
-    return promiseDir(libFlowsDir)
-  },
-
   getFlows: function() {
     return when.promise(function(resolve) {
       fs.readFile(settings.flowsFile, 'utf8', function(err,data) {
@@ -88,24 +84,24 @@ const localfilesystem = {
     return writeFile(settings.flowsFile, flowData)
   },
 
-  getSettings: function() {
-    return when.promise(function(resolve,reject) {
-      fs.readFile(globalSettingsFile, 'utf8', function(err,data) {
-        if (!err) {
-          try {
-            return resolve(JSON.parse(data))
-          } catch(err2) {
-            log.trace('Corrupted config detected - resetting')
-          }
-        }
-        return resolve({})
-      })
-    })
-  },
+  // getSettings: function() {
+  //   return when.promise(function(resolve,reject) {
+  //     fs.readFile(globalSettingsFile, 'utf8', function(err,data) {
+  //       if (!err) {
+  //         try {
+  //           return resolve(JSON.parse(data))
+  //         } catch(err2) {
+  //           log.trace('Corrupted config detected - resetting')
+  //         }
+  //       }
+  //       return resolve({})
+  //     })
+  //   })
+  // },
 
-  saveSettings: function(settings) {
-    return writeFile(globalSettingsFile, JSON.stringify(settings, null, 1))
-  },
+  // saveSettings: function(settings) {
+  //   return writeFile(globalSettingsFile, JSON.stringify(settings, null, 1))
+  // },
 
   getLibEntry: function(path) {
     const flowLibDir = fspath.join(libDir, 'flows')
