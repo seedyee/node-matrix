@@ -58,6 +58,7 @@ const dotsPath = {
   // others
   lowercase: p('others/lower-case'),
 }
+
 //=======================================================================
 
 function createDot(path) {
@@ -96,7 +97,7 @@ function load() {
     const nodeInfo = createNodeInfo(node)
     nodeList.push(nodeInfo)
     allNodeConfigs += node.config
-    allNodeConfigs += getNodeHelp(node, 'en-US')
+    allNodeConfigs += node.help
     const red = createNodeApi(node.id)
     require(node.file)(red)
   })
@@ -152,7 +153,6 @@ function createNodeInfo(node) {
 let runtime
 function init(_runtime) {
   runtime = _runtime
-  // registry.init()
   nodeConstructors = {}
   Node = require('../Node')
 }
@@ -176,14 +176,13 @@ function loadNodeConfig(nodeMeta) {
   let regExp = /(<script[^>]* data-help-name=[\s\S]*?<\/script>)/gi
   match = null
   let mainContent = ''
-  let helpContent = {}
+  let helpContent = ''
   let index = 0
-  const lang = 'en-US'
   while ((match = regExp.exec(content)) !== null) {
     mainContent += content.substring(index, regExp.lastIndex - match[1].length)
     index = regExp.lastIndex
     const help = content.substring(regExp.lastIndex - match[1].length, regExp.lastIndex)
-    helpContent[lang] += help
+    helpContent += help
   }
   mainContent += content.substring(index)
   node.config = mainContent
@@ -236,37 +235,6 @@ function createNodeApi(nodeId) {
   // todo remove the following line
   red['_'] = function() {}
   return red
-}
-
-function loadNodeHelp(node, lang) {
-  var dir = path.dirname(node.template)
-  var base = path.basename(node.template)
-  var localePath = path.join(dir,'locales',lang,base)
-  try {
-    // TODO: make this async
-    var content = fs.readFileSync(localePath, 'utf8')
-    return content
-  } catch(err) {
-    return null
-  }
-}
-
-function getNodeHelp(node, lang) {
-  if (!node.help[lang]) {
-    var help = loadNodeHelp(node, lang)
-    if (help == null) {
-      var langParts = lang.split('-')
-      if (langParts.length == 2) {
-        help = loadNodeHelp(node,langParts[0])
-      }
-    }
-    if (help) {
-      node.help[lang] = help
-    } else {
-      node.help[lang] = 'en-US'
-    }
-  }
-  return node.help[lang]
 }
 
 module.exports = {
