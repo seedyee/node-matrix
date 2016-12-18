@@ -11,7 +11,8 @@ function init(runtime) {
 
 function load() {
   registry.load()
-  return loader.load()
+  loader.load()
+  return when.resolve()
 }
 
 module.exports = {

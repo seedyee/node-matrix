@@ -3,11 +3,11 @@ const fs = require('fs')
 const path = require('path')
 const semver = require('semver')
 const forOwn = require('lodash/forOwn')
-const { coreDotsDir } = require('../../../../settings')
 
 const localfilesystem = require('./localfilesystem')
 const registry = require('./registry')
 
+const { coreDotsDir } = require('../../../../settings')
 // get absolute path relative to coreNodesDir
 function p(relativePath, dir = coreDotsDir) {
   return path.join(dir, relativePath)
@@ -61,17 +61,35 @@ const dotsPath = {
 }
 //=======================================================================
 
-/**
- * Loads the specified node into the runtime
- * @param node a node info object - see loadNodeConfig
- * @return a promise that resolves to an update node info object. The object
- *         has the following properties added:
- *            err: any error encountered whilst loading the node
- *
- */
+function createDot(path) {
+  const result = {
+    module: 'node-red',
+    version: '0.15.2',
+    file: path + '.js',
+  }
+  const parts = path.split('/')
+  result.name = parts[parts.length -1].replace('/^[\d]+-/', '')
+  return result
+}
 
+function createDotFiles(paths) {
+  const nodes = {}
+  forOwn(paths, (value, key) => {
+    nodes[key] = createDot(value)
+  })
+  const result = {
+    'node-red': {
+      name: 'node-red',
+      version: '0.15.2',
+      nodes,
+    }
+  }
+  return result
+}
+// console.log('-----------dot', createDotFiles(dotsPath)['node-red'])
 function load() {
-  const nodeFiles = localfilesystem.getNodeFiles()
+  // const nodeFiles = localfilesystem.getNodeFiles()
+  const nodeFiles = createDotFiles(dotsPath)
   return loadNodeFiles(nodeFiles)
 }
 
@@ -138,7 +156,7 @@ function loadNodeConfig(nodeMeta) {
       enabled: isEnabled,
       loaded:false,
       version: version,
-      local: nodeMeta.local,
+      local: 'en-US',
     }
 
     fs.readFile(template, 'utf8', function(err, content) {
