@@ -10,7 +10,6 @@ const userSettings = require('../../settings')
 const adminApi = require('../api')
 
 const version = userSettings.version
-let started = false
 
 function init() {
   redNodes.init(runtime)
@@ -19,23 +18,14 @@ function init() {
 }
 
 function start() {
-  return  storage.init()
-             .then(function() { return settings.load(storage)})
-             .then(function() {
-               console.log('\n==================== Welcome ============================\n')
-               log.info(`Node-RED version v${version}`)
-               log.info(`Node.js version ${process.version}`)
-               return redNodes.load().then(function() {
-                 redNodes.loadFlows().then(redNodes.startFlows)
-                 started = true
-               }).catch((err) => {
-                 log.error(err)
-               })
-             })
+  console.log('\n==================== Welcome ============================\n')
+  log.info(`Node-RED version v${version}`)
+  log.info(`Node.js version ${process.version}`)
+  redNodes.load()
+  return redNodes.loadFlows().then(redNodes.startFlows)
 }
 
 function stop() {
-  started = false
   return redNodes.stopFlows()
 }
 
