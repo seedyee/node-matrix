@@ -24,15 +24,6 @@ const errorHandler = function(err, req, res, next) {
   res.status(400).json({error:'unexpected_error', message:err.toString()})
 }
 
-const ensureRuntimeStarted = function(req, res, next) {
-  if (!runtime.isStarted()) {
-    log.error('Node-RED runtime not started')
-    res.status(503).send('Not started')
-  } else {
-    next()
-  }
-}
-
 function init(_server, _runtime) {
   server = _server
   runtime = _runtime
@@ -49,7 +40,7 @@ function init(_server, _runtime) {
   ui.init(runtime)
 
   const editorApp = express()
-  editorApp.get('/', ensureRuntimeStarted, ui.ensureSlash, ui.editor)
+  editorApp.get('/', ui.ensureSlash, ui.editor)
   editorApp.get('/icons/:icon', ui.icon)
   editorApp.use('/', ui.editorResources)
   adminApp.use(editorApp)

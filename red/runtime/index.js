@@ -3,18 +3,16 @@ const redNodes = require('./nodes')
 const storage = require('./storage')
 const log = require('./log')
 const events = require('./events')
-const settings = require('./settings')
 const path = require('path')
 const fs = require('fs')
 const userSettings = require('../../settings')
 const adminApi = require('../api')
 
-const version = userSettings.version
+const { version } = userSettings
 
 function init() {
   redNodes.init(runtime)
   log.init()
-  settings.init()
 }
 
 function start() {
@@ -35,11 +33,10 @@ var runtime = module.exports = {
   stop,
   version,
   log,
-  settings,
+  settings: userSettings,
   storage,
   events,
   nodes: redNodes,
   util: require('./util'),
   get adminApi() { return adminApi },
-  isStarted: () => started,
 }

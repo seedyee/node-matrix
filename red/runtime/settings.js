@@ -22,22 +22,16 @@ var persistentSettings = {
     }
     globalSettings = null
   },
-  // load: function(_storage) {
-  //   storage = _storage
-  //   return storage.getSettings().then(function(_settings) {
-  //     globalSettings = _settings
-  //   })
-  // },
   get: function(prop) {
-    if (userSettings.hasOwnProperty(prop)) {
-      return clone(userSettings[prop])
-    }
-    if (globalSettings === null) {
-      throw new Error('settings.not-available')
-    }
-    return clone(globalSettings[prop])
+    // if (userSettings.hasOwnProperty(prop)) {
+    //   return clone(userSettings[prop])
+    // }
+    // if (globalSettings === null) {
+    //   throw new Error('settings.not-available')
+    // }
+    // return clone(globalSettings[prop])
+    return
   },
 }
-
 module.exports = persistentSettings
 

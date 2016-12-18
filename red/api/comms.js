@@ -1,7 +1,7 @@
 const ws = require('ws')
 var log
 var server
-var settings
+const settings = require('../../settings')
 var wsServer
 var pendingConnections = []
 var activeConnections = []
@@ -15,7 +15,7 @@ function handleStatus(event) {
 
 function init(_server,runtime) {
   server = _server
-  settings = runtime.settings
+  // settings = runtime.settings
   log = runtime.log
 
   runtime.events.removeListener('node-status',handleStatus)
