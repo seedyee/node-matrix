@@ -30,42 +30,21 @@ function load(nodeFiles) {
   moduleConfigs = nodeFiles
 }
 
-function inheritNode(constructor) {
-  if(Object.getPrototypeOf(constructor.prototype) === Object.prototype) {
-    util.inherits(constructor,Node)
-  } else {
-    var proto = constructor.prototype
-    while(Object.getPrototypeOf(proto) !== Object.prototype) {
-      proto = Object.getPrototypeOf(proto)
-    }
-    //TODO: This is a partial implementation of util.inherits >= node v5.0.0
-    //      which should be changed when support for node < v5.0.0 is dropped
-    //      see: https://github.com/nodejs/node/pull/3455
-    proto.constructor.super_ = Node
-    if(Object.setPrototypeOf) {
-      Object.setPrototypeOf(proto, Node.prototype)
-    }
-  }
-}
-
 function registerNodeConstructor(nodeSet, type, constructor) {
   if (nodeConstructors.hasOwnProperty(type)) {
     throw new Error(type+' already registered')
   }
   if(!(constructor.prototype instanceof Node)) {
-    inheritNode(constructor)
+    util.inherits(constructor, Node)
   }
-  let nodeSetInfo
   const module = moduleConfigs[getModule(nodeSet)]
-  nodeSetInfo =  module.nodes[getNode(nodeSet)]
-  if (nodeSetInfo) {
-    if (nodeSetInfo.types.indexOf(type) === -1) {
-      // A type is being registered for a known set, but for some reason
-      // we didn't spot it when parsing the HTML file.
-      // Registered a type is the definitive action - not the presence
-      // of an edit template. Ensure it is on the list of known types.
-      nodeSetInfo.types.push(type)
-    }
+  const nodeSetInfo =  module.nodes[getNode(nodeSet)]
+  if (nodeSetInfo.types.indexOf(type) === -1) {
+    // A type is being registered for a known set, but for some reason
+    // we didn't spot it when parsing the HTML file.
+    // Registered a type is the definitive action - not the presence
+    // of an edit template. Ensure it is on the list of known types.
+    nodeSetInfo.types.push(type)
   }
 
   nodeConstructors[type] = constructor
