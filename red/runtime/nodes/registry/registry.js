@@ -6,7 +6,6 @@ var settings
 var Node
 var loader
 
-var nodeConfigCache = null
 var moduleConfigs = {}
 var nodeList = []
 var nodeConstructors = {}
@@ -20,7 +19,6 @@ function addNodeSet(set) {
   moduleConfigs[set.module].local = set.local
   moduleConfigs[set.module].nodes[set.name] = set
   nodeList.push(id)
-  nodeConfigCache = null
 }
 
 function init(_settings, _loader) {
@@ -30,29 +28,11 @@ function init(_settings, _loader) {
   nodeTypeToId = {}
   nodeConstructors = {}
   nodeList = []
-  nodeConfigCache = null
   Node = require('../Node')
 }
 
 function load() {
   moduleConfigs = settings.get('nodes')
-}
-
-function filterNodeInfo(n) {
-  var r = {
-    id: n.id||n.module+'/'+n.name,
-    name: n.name,
-    types: n.types,
-    enabled: n.enabled,
-    local: n.local||false,
-  }
-  if (n.hasOwnProperty('module')) {
-    r.module = n.module
-  }
-  if (n.hasOwnProperty('err')) {
-    r.err = n.err.toString()
-  }
-  return r
 }
 
 function getModule(id) {
@@ -66,31 +46,35 @@ function getNode(id) {
 }
 
 
-function getFullNodeInfo(typeOrId) {
-  const module = moduleConfigs[getModule(typeOrId)]
-  if (module) {
-    return module.nodes[getNode(typeOrId)]
+function filterNodeInfo(n) {
+  var r = {
+    id: n.id||n.module+'/'+n.name,
+    name: n.name,
+    types: n.types,
+    enabled: n.enabled,
+    local: n.local||false,
   }
+  if (n.hasOwnProperty('module')) {
+    r.module = n.module
+  }
+  return r
 }
 
-function getNodeList(filter) {
+function getNodeList() {
   var list = []
   for (var module in moduleConfigs) {
-    /* istanbul ignore else */
     if (moduleConfigs.hasOwnProperty(module)) {
       var nodes = moduleConfigs[module].nodes
       for (var node in nodes) {
-        /* istanbul ignore else */
         if (nodes.hasOwnProperty(node)) {
           var nodeInfo = filterNodeInfo(nodes[node])
           nodeInfo.version = moduleConfigs[module].version
-          if (!filter || filter(nodes[node])) {
-            list.push(nodeInfo)
-          }
+          list.push(nodeInfo)
         }
       }
     }
   }
+  console.log(list)
   return list
 }
 
@@ -112,7 +96,7 @@ function inheritNode(constructor) {
   }
 }
 
-function registerNodeConstructor(nodeSet,type,constructor) {
+function registerNodeConstructor(nodeSet, type, constructor) {
   if (nodeConstructors.hasOwnProperty(type)) {
     throw new Error(type+' already registered')
   }
@@ -120,7 +104,9 @@ function registerNodeConstructor(nodeSet,type,constructor) {
     inheritNode(constructor)
   }
 
-  const nodeSetInfo = getFullNodeInfo(nodeSet)
+  let nodeSetInfo
+  const module = moduleConfigs[getModule(nodeSet)]
+  nodeSetInfo =  module.nodes[getNode(nodeSet)]
   if (nodeSetInfo) {
     if (nodeSetInfo.types.indexOf(type) === -1) {
       // A type is being registered for a known set, but for some reason
@@ -132,25 +118,19 @@ function registerNodeConstructor(nodeSet,type,constructor) {
   }
 
   nodeConstructors[type] = constructor
-  events.emit('type-registered',type)
+  events.emit('type-registered', type)
 }
 
 // @return: string
 function getAllNodeConfigs() {
-  if (!nodeConfigCache) {
-    var result = ''
-    var script = ''
-
-    nodeList.forEach(id => {
-      var config = moduleConfigs[getModule(id)].nodes[getNode(id)]
-      if (config.enabled && !config.err) {
-        result += config.config
-        result += loader.getNodeHelp(config, 'en-US')
-      }
-    })
-    nodeConfigCache = result
-  }
-  return nodeConfigCache
+  var result = ''
+  var script = ''
+  nodeList.forEach(id => {
+    var config = moduleConfigs[getModule(id)].nodes[getNode(id)]
+    result += config.config
+    result += loader.getNodeHelp(config, 'en-US')
+  })
+  return result
 }
 
 function getNodeConstructor(type) {
@@ -172,12 +152,9 @@ function getNodeConstructor(type) {
 const registry = module.exports = {
   init: init,
   load: load,
-
   registerNodeConstructor: registerNodeConstructor,
   getNodeConstructor: getNodeConstructor,
-
   addNodeSet: addNodeSet,
-  getFullNodeInfo: getFullNodeInfo,
   getNodeList: getNodeList,
 
   /**

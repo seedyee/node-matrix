@@ -4,7 +4,6 @@ const path = require('path')
 const semver = require('semver')
 const forOwn = require('lodash/forOwn')
 
-const localfilesystem = require('./localfilesystem')
 const registry = require('./registry')
 
 const { coreDotsDir } = require('../../../../settings')
@@ -89,7 +88,6 @@ function createDotFiles(paths) {
 
 // console.log('-----------dot', createDotFiles(dotsPath)['node-red'])
 function load() {
-  // const nodeFiles = localfilesystem.getNodeFiles()
   const nodeFiles = createDotFiles(dotsPath)
   const nodeConfigs = []
   forOwn(nodeFiles, module => {
@@ -108,14 +106,12 @@ function load() {
 let runtime
 function init(_runtime) {
   runtime = _runtime
-  localfilesystem.init(runtime)
 }
 
 function loadNodeConfig(nodeMeta) {
   const { file, module, name, version  } = nodeMeta
   const id = `${module}/${name}`
   const template = file.replace(/\.js$/,'.html')
-  let isEnabled = true
 
   const node = {
     id,
@@ -124,8 +120,6 @@ function loadNodeConfig(nodeMeta) {
     file,
     template,
     types: [],
-    enabled: isEnabled,
-    loaded:false,
     version: version,
     local: 'en-US',
   }
