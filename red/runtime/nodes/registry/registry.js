@@ -2,20 +2,13 @@ const util = require('util')
 const when = require('when')
 const events = require('../../events')
 
-var settings
 var Node
-var loader
-
 var moduleConfigs = {}
-var nodeList = []
 var nodeConstructors = {}
-var nodeTypeToId = {}
 
 function addNodeSet(set) {
-  const { id, version } = set
-  moduleConfigs[set.module].local = set.local
-  moduleConfigs[set.module].nodes[set.name] = set
-  nodeList.push(id)
+  const { module, name } = set
+  moduleConfigs[module].nodes[name] = set
 }
 
 function getModule(id) {
@@ -28,12 +21,8 @@ function getNode(id) {
   return parts[parts.length - 1]
 }
 
-function init(_settings, _loader) {
-  settings = _settings
-  loader = _loader
-  nodeTypeToId = {}
+function init(_settings) {
   nodeConstructors = {}
-  nodeList = []
   Node = require('../Node')
 }
 
@@ -66,7 +55,6 @@ function registerNodeConstructor(nodeSet, type, constructor) {
   if(!(constructor.prototype instanceof Node)) {
     inheritNode(constructor)
   }
-
   let nodeSetInfo
   const module = moduleConfigs[getModule(nodeSet)]
   nodeSetInfo =  module.nodes[getNode(nodeSet)]
@@ -85,19 +73,7 @@ function registerNodeConstructor(nodeSet, type, constructor) {
 }
 
 function getNodeConstructor(type) {
-  var id = nodeTypeToId[type]
-
-  var config
-  if (typeof id === 'undefined') {
-    config = undefined
-  } else {
-    config = moduleConfigs[getModule(id)].nodes[getNode(id)]
-  }
-
-  if (!config || (config.enabled && !config.err)) {
-    return nodeConstructors[type]
-  }
-  return null
+  return nodeConstructors[type]
 }
 
 const registry = module.exports = {
