@@ -65,7 +65,6 @@ function createDot(path) {
     module: 'node-red',
     version: '0.15.2',
     file: path + '.js',
-    local: false,
     types: [],
   }
   const parts = path.split('/')
@@ -88,9 +87,12 @@ function createDotFiles(paths) {
   return result
 }
 
+const nodeList = []
+let allNodeConfigs
+let nodeFiles
 // console.log('-----------dot', createDotFiles(dotsPath)['node-red'])
 function load() {
-  const nodeFiles = createDotFiles(dotsPath)
+  nodeFiles = createDotFiles(dotsPath)
   registry.load(nodeFiles)
   const nodeConfigs = []
   forOwn(nodeFiles, module => {
@@ -101,9 +103,26 @@ function load() {
   })
   nodeConfigs.forEach(node => {
     registry.addNodeSet(node)
+    const nodeInfo = createNodeInfo(node)
+    nodeList.push(nodeInfo)
+    allNodeConfigs += node.config
+    allNodeConfigs += getNodeHelp(node, 'en-US')
     const red = createNodeApi(node.id)
     require(node.file)(red)
   })
+}
+
+function createNodeInfo(node) {
+  const { id, module, name, version, types } = node
+  return {
+    id: id || `${module}/${name}`,
+    name,
+    types,
+    enabled: true,
+    local: false,
+    version,
+    module,
+  }
 }
 
 let runtime
@@ -228,6 +247,8 @@ var loader = {
   init: init,
   load: load,
   getNodeHelp: getNodeHelp,
+  getNodeList: function() {return nodeList },
+  getAllNodeConfigs: function() { return allNodeConfigs },
 }
 
 module.exports = loader
