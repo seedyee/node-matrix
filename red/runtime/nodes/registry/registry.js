@@ -13,6 +13,16 @@ var nodeConstructors = {}
 var nodeTypeToId = {}
 var moduleNodes = {}
 
+function addNodeSet(set) {
+  const { id, version } = set
+  moduleNodes[set.module] = moduleNodes[set.module]||[]
+  moduleNodes[set.module].push(set.name)
+  moduleConfigs[set.module].local = set.local
+  moduleConfigs[set.module].nodes[set.name] = set
+  nodeList.push(id)
+  nodeConfigCache = null
+}
+
 function init(_settings, _loader) {
   settings = _settings
   loader = _loader
@@ -26,21 +36,6 @@ function init(_settings, _loader) {
 
 function load() {
   moduleConfigs = settings.get('nodes')
-}
-
-function getNodeConfig(id,lang) {
-  var config = moduleConfigs[getModule(id)]
-  if (!config) {
-    return null
-  }
-  config = config.nodes[getNode(id)]
-  if (config) {
-    var result = config.config
-    result += loader.getNodeHelp(config,lang||'en-US')
-    return result
-  } else {
-    return null
-  }
 }
 
 function filterNodeInfo(n) {
@@ -70,15 +65,6 @@ function getNode(id) {
   return parts[parts.length - 1]
 }
 
-function addNodeSet(set) {
-  const { id, version } = set
-  moduleNodes[set.module] = moduleNodes[set.module]||[]
-  moduleNodes[set.module].push(set.name)
-  moduleConfigs[set.module].local = set.local
-  moduleConfigs[set.module].nodes[set.name] = set
-  nodeList.push(id)
-  nodeConfigCache = null
-}
 
 function getFullNodeInfo(typeOrId) {
   const module = moduleConfigs[getModule(typeOrId)]
@@ -199,5 +185,4 @@ const registry = module.exports = {
    * @return all of the node templates in a single string
    */
   getAllNodeConfigs,
-  getNodeConfig,
 }

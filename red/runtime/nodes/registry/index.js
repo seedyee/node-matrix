@@ -22,5 +22,5 @@ module.exports = {
   get: registry.getNodeConstructor,
   getNodeList: registry.getNodeList,
   getNodeConfigs: registry.getAllNodeConfigs,
-  getNodeConfig: registry.getNodeConfig,
+  // getNodeConfig: registry.getNodeConfig,
 }
