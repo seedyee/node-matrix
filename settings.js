@@ -5,27 +5,24 @@ const { getVersion } = require('./red/utils')
 const uiPort = process.env.UI_PORT || 1880
 const uiHost = process.env.UI_HOST || '127.0.0.1'
 // const userDir = path.resolve(process.env.USER_DIR || path.join(process.env.HOME, './.node-red'))
-const userDir = path.resolve(path.join(__dirname, './data'))
-const flowsFile = path.join(userDir, 'flows.json')
+const dataDir = path.resolve(path.join(__dirname, './data'))
+const flowsFile = path.join(dataDir, 'flows.json')
 const version = getVersion()
 
 const settingsFile = path.join(__dirname, './settings.js')
 const coreNodesDir = path.join(__dirname, './nodes')
 const coreDotsDir = path.join(__dirname, './nodes/core')
-const userNodesDir = path.join(userDir, './nodes')
-const nodesDirList = [coreNodesDir, userNodesDir]
 
 module.exports = {
   uiPort,
   uiHost,
-  userDir,
+  dataDir,
 
   // Node-RED scans the `nodes` directory in the install directory to find nodes.
   // The following property can be used to specify an additional directory to scan.
   //nodesDir: '/home/nol/.node-red/nodes',
   coreNodesDir,
   coreDotsDir,
-  nodesDirList,
   version,
   settingsFile,
   // Retry time in milliseconds for MQTT connections

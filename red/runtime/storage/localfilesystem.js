@@ -1,16 +1,18 @@
-var fs = require('fs-extra')
-var when = require('when')
-var nodeFn = require('when/node/function')
-var fspath = require('path')
-var mkdirp = fs.mkdirs
+const fs = require('fs-extra')
+const when = require('when')
+const nodeFn = require('when/node/function')
+const fspath = require('path')
+const mkdirp = fs.mkdirs
 const settings = require('../../../settings')
 const log = require('../log')
 
-const libDir = fspath.join(settings.userDir, 'lib')
-const libFlowsDir = fspath.join(libDir,'flows')
-const globalSettingsFile = fspath.join(settings.userDir, '.config.json')
+const libDir = fspath.join(settings.dataDir, 'lib')
+const libFlowsDir = fspath.join(libDir, 'flows')
+const globalSettingsFile = fspath.join(settings.dataDir, '.config.json')
 
-var promiseDir = nodeFn.lift(mkdirp)
+fs.mkdirpSync(libFlowsDir)
+
+const promiseMkdir = nodeFn.lift(mkdirp)
 
 function getFileBody(root,path) {
   var body = ''
@@ -84,43 +86,22 @@ const localfilesystem = {
     return writeFile(settings.flowsFile, flowData)
   },
 
-  // getSettings: function() {
-  //   return when.promise(function(resolve,reject) {
-  //     fs.readFile(globalSettingsFile, 'utf8', function(err,data) {
-  //       if (!err) {
-  //         try {
-  //           return resolve(JSON.parse(data))
-  //         } catch(err2) {
-  //           log.trace('Corrupted config detected - resetting')
-  //         }
-  //       }
-  //       return resolve({})
-  //     })
-  //   })
-  // },
-
-  // saveSettings: function(settings) {
-  //   return writeFile(globalSettingsFile, JSON.stringify(settings, null, 1))
-  // },
-
   getLibEntry: function(path) {
-    const flowLibDir = fspath.join(libDir, 'flows')
-    return getFileBody(flowLibDir, path)
+    return getFileBody(libFlowsDir, path)
   },
 
   getAllLibs: function() {
-    const flowLibDir = fspath.join(libDir, 'flows')
-    const files = fs.readdirSync(flowLibDir)
+    const files = fs.readdirSync(libFlowsDir)
     return { f: files }
   },
   // type: 'folows' | 'function' | 'template'
   // path can be tested path --> dir/subdir/name
   saveLibraryEntry: function(type, path, meta, body) {
     const file = fspath.join(libDir, type, path)
-    return promiseDir(fspath.dirname(file)).then(function () {
+    return promiseMkdir(fspath.dirname(file)).then(function () {
       writeFile(file, body)
     })
   }
 }
-localfilesystem.getAllLibs()
+
 module.exports = localfilesystem
