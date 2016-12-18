@@ -61,15 +61,14 @@ const dotsPath = {
 //=======================================================================
 
 function createDot(path) {
-  const result = {
+  const parts = path.split('/')
+  return {
     module: 'node-red',
     version: '0.15.2',
     file: path + '.js',
     types: [],
+    name: parts[parts.length -1].replace(/^\d+\-/, ''),
   }
-  const parts = path.split('/')
-  result.name = parts[parts.length -1].replace(/^\d+\-/, '')
-  return result
 }
 
 function createDotFiles(paths) {
@@ -93,7 +92,7 @@ function load() {
   })
 
   nodeConfigs.forEach(node => {
-    addNodeSet(node)
+    nodesMap[node.name] = node
     const nodeInfo = createNodeInfo(node)
     nodeList.push(nodeInfo)
     allNodeConfigs += node.config
@@ -107,16 +106,6 @@ function load() {
 
 var Node
 var nodeConstructors = {}
-
-function addNodeSet(set) {
-  const { name } = set
-  nodesMap[name] = set
-}
-
-function getModule(id) {
-  const parts = id.split('/')
-  return parts.slice(0, parts.length-1).join('/')
-}
 
 function getNode(id) {
   const parts = id.split('/')
