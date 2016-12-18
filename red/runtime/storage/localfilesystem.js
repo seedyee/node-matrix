@@ -104,10 +104,7 @@ const localfilesystem = {
   },
 
   saveSettings: function(settings) {
-    if (settings.readOnly) {
-      return when.resolve()
-    }
-    return writeFile(globalSettingsFile,JSON.stringify(settings,null,1))
+    return writeFile(globalSettingsFile, JSON.stringify(settings, null, 1))
   },
 
   getLibEntry: function(path) {

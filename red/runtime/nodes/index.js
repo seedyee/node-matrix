@@ -50,8 +50,8 @@ module.exports = {
 
   getNodeList: registry.getNodeList,
   getNodeConfigs: registry.getNodeConfigs,
-  getNodeConfig: registry.getNodeConfig,
 
+  getNodeConfig: registry.getNodeConfig,
   cleanModuleList: registry.cleanModuleList,
 
   // Flow handling

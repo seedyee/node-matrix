@@ -11,6 +11,7 @@ const version = getVersion()
 
 const settingsFile = path.join(__dirname, './settings.js')
 const coreNodesDir = path.join(__dirname, './nodes')
+const coreDotsDir = path.join(__dirname, './nodes/core')
 const userNodesDir = path.join(userDir, './nodes')
 const nodesDirList = [coreNodesDir, userNodesDir]
 
@@ -23,6 +24,7 @@ module.exports = {
   // The following property can be used to specify an additional directory to scan.
   //nodesDir: '/home/nol/.node-red/nodes',
   coreNodesDir,
+  coreDotsDir,
   nodesDirList,
   version,
   settingsFile,

@@ -1,19 +1,3 @@
-/**
- * Copyright 2015, 2016 IBM Corp.
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- **/
-
 const util = require('util')
 const when = require('when')
 const events = require('../../events')
@@ -171,7 +155,8 @@ function registerNodeConstructor(nodeSet,type,constructor) {
   events.emit('type-registered',type)
 }
 
-function getAllNodeConfigs(lang) {
+// @return: string
+function getAllNodeConfigs() {
   if (!nodeConfigCache) {
     var result = ''
     var script = ''
@@ -180,7 +165,7 @@ function getAllNodeConfigs(lang) {
       var config = moduleConfigs[getModule(id)].nodes[getNode(id)]
       if (config.enabled && !config.err) {
         result += config.config
-        result += loader.getNodeHelp(config, lang||'en-US') || ''
+        result += loader.getNodeHelp(config, 'en-US')
       }
     })
     nodeConfigCache = result
@@ -219,6 +204,6 @@ const registry = module.exports = {
    * Gets all of the node template configs
    * @return all of the node templates in a single string
    */
-  getAllNodeConfigs: getAllNodeConfigs,
-  getNodeConfig: getNodeConfig,
+  getAllNodeConfigs,
+  getNodeConfig,
 }

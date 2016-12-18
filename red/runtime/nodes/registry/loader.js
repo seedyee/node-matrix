@@ -3,16 +3,38 @@ const fs = require('fs')
 const path = require('path')
 const semver = require('semver')
 const forOwn = require('lodash/forOwn')
+const { coreDotsDir } = require('../../../../settings')
 
 const localfilesystem = require('./localfilesystem')
 const registry = require('./registry')
 
-let runtime
-
-function init(_runtime) {
-  runtime = _runtime
-  localfilesystem.init(runtime)
+// get absolute path relative to coreNodesDir
+function p(relativePath, dir = coreDotsDir) {
+  return path.join(dir, relativePath)
 }
+
+//=======================================================================
+
+const dotsPath = {
+  // analysis
+  sentiment: p('analysis/72-sentiment'),
+  // core
+  inject: p('core/20-inject'),
+  catch: p('core/25-catch'),
+  status: p('core/25-status'),
+  debug: p('core/58-debug'),
+  link: p('core/60-link'),
+}
+//=======================================================================
+
+/**
+ * Loads the specified node into the runtime
+ * @param node a node info object - see loadNodeConfig
+ * @return a promise that resolves to an update node info object. The object
+ *         has the following properties added:
+ *            err: any error encountered whilst loading the node
+ *
+ */
 
 function load() {
   const nodeFiles = localfilesystem.getNodeFiles()
@@ -39,6 +61,30 @@ function loadNodeFiles(nodeFiles) {
     })
     return loadNodeSetList(nodes)
   })
+}
+
+function loadNodeSetList(nodes) {
+  nodes.forEach(node => {
+    const nodeDir = path.dirname(node.file)
+    const nodeFn = path.basename(node.file)
+    try {
+      const nodeFn = require(node.file)
+      if (typeof nodeFn !== 'function') throw new Error(`Not function is exported in: ${node.file}`)
+      const red = createNodeApi(node)
+      nodeFn(red)
+      node.enabled = true
+      node.loaded = true
+    } catch(err) {
+      console.log(err)
+      node.err = err
+    }
+  })
+}
+
+let runtime
+function init(_runtime) {
+  runtime = _runtime
+  localfilesystem.init(runtime)
 }
 
 function loadNodeConfig(nodeMeta) {
@@ -93,19 +139,12 @@ function createNodeApi(node) {
     createNode,
     getNode,
     eachNode,
-    // addCredentials,
-    // getCredentials,
-    // deleteCredentials,
-
   } = runtime.nodes
 
   const nodesApi = {
     createNode,
     getNode,
     eachNode,
-    // addCredentials,
-    // getCredentials,
-    // deleteCredentials,
   }
   const logApi = {
     log,
@@ -114,8 +153,6 @@ function createNodeApi(node) {
     error,
     trace,
     debug,
-    // metric,
-    // audit,
   } = runtime.log
 
   const red = {
@@ -130,57 +167,18 @@ function createNodeApi(node) {
     runtime.nodes.registerType(node.id, type, constructor, opts)
   }
   const adminApi = runtime.adminApi
-  if (adminApi) {
-    red.comms = adminApi.comms
-    red.library = adminApi.library
-    red.auth = adminApi.auth
-    red.httpAdmin = adminApi.adminApp
-    red.httpNode = adminApi.nodeApp
-    red.server = adminApi.server
-  } else {
-    red.comms = {
-      publish: function() {}
-    }
-    red.library = {
-      register: function() {}
-    }
-    red.auth = {
-      needsPermission: function() {}
-    }
-    // TODO: stub out httpAdmin/httpNode/server
-  }
+  red.comms = adminApi.comms
+  red.library = adminApi.library
+  red.auth = adminApi.auth
+  red.httpAdmin = adminApi.adminApp
+  red.httpNode = adminApi.nodeApp
+  red.server = adminApi.server
 
   // todo remove the following line
   red['_'] = function() {}
   return red
 }
 
-/**
- * Loads the specified node into the runtime
- * @param node a node info object - see loadNodeConfig
- * @return a promise that resolves to an update node info object. The object
- *         has the following properties added:
- *            err: any error encountered whilst loading the node
- *
- */
-
-function loadNodeSetList(nodes) {
-  nodes.forEach(node => {
-    const nodeDir = path.dirname(node.file)
-    const nodeFn = path.basename(node.file)
-    try {
-      const nodeFn = require(node.file)
-      if (typeof nodeFn !== 'function') throw new Error(`Not function is exported in: ${node.file}`)
-      const red = createNodeApi(node)
-      nodeFn(red)
-      node.enabled = true
-      node.loaded = true
-    } catch(err) {
-      console.log(err)
-      node.err = err
-    }
-  })
-}
 
 function loadNodeHelp(node,lang) {
   var dir = path.dirname(node.template)
