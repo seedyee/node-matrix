@@ -3,8 +3,8 @@ const fs = require('fs')
 const path = require('path')
 const semver = require('semver')
 const forOwn = require('lodash/forOwn')
-
-const registry = require('./registry')
+const util = require('util')
+const events = require('../../events')
 
 const { coreDotsDir } = require('../../../../settings')
 // get absolute path relative to coreNodesDir
@@ -89,11 +89,11 @@ function createDotFiles(paths) {
 
 const nodeList = []
 let allNodeConfigs
+let moduleConfigs
 let nodeFiles
 // console.log('-----------dot', createDotFiles(dotsPath)['node-red'])
 function load() {
-  nodeFiles = createDotFiles(dotsPath)
-  registry.load(nodeFiles)
+  nodeFiles = moduleConfigs = createDotFiles(dotsPath)
   const nodeConfigs = []
   forOwn(nodeFiles, module => {
     const { nodes } = module
@@ -102,7 +102,7 @@ function load() {
     })
   })
   nodeConfigs.forEach(node => {
-    registry.addNodeSet(node)
+    addNodeSet(node)
     const nodeInfo = createNodeInfo(node)
     nodeList.push(nodeInfo)
     allNodeConfigs += node.config
@@ -111,6 +111,51 @@ function load() {
     require(node.file)(red)
   })
 }
+
+//======================================================================
+
+var Node
+var nodeConstructors = {}
+
+function addNodeSet(set) {
+  const { module, name } = set
+  moduleConfigs[module].nodes[name] = set
+}
+
+function getModule(id) {
+  const parts = id.split('/')
+  return parts.slice(0, parts.length-1).join('/')
+}
+
+function getNode(id) {
+  const parts = id.split('/')
+  return parts[parts.length - 1]
+}
+
+function registerNodeConstructor(nodeSet, type, constructor) {
+  if (nodeConstructors.hasOwnProperty(type)) {
+    throw new Error(type+' already registered')
+  }
+  if(!(constructor.prototype instanceof Node)) {
+    util.inherits(constructor, Node)
+  }
+  const module = moduleConfigs[getModule(nodeSet)]
+  const nodeSetInfo =  module.nodes[getNode(nodeSet)]
+  if (nodeSetInfo.types.indexOf(type) === -1) {
+    // A type is being registered for a known set, but for some reason
+    // we didn't spot it when parsing the HTML file.
+    // Registered a type is the definitive action - not the presence
+    // of an edit template. Ensure it is on the list of known types.
+    nodeSetInfo.types.push(type)
+  }
+
+  nodeConstructors[type] = constructor
+  events.emit('type-registered', type)
+}
+function getNodeConstructor(type) {
+  return nodeConstructors[type]
+}
+//=====================================================================
 
 function createNodeInfo(node) {
   const { id, module, name, version, types } = node
@@ -128,7 +173,9 @@ function createNodeInfo(node) {
 let runtime
 function init(_runtime) {
   runtime = _runtime
-  registry.init(runtime.settings, loader)
+  // registry.init()
+  nodeConstructors = {}
+  Node = require('../Node')
 }
 
 function loadNodeConfig(nodeMeta) {
@@ -249,6 +296,8 @@ var loader = {
   getNodeHelp: getNodeHelp,
   getNodeList: function() {return nodeList },
   getAllNodeConfigs: function() { return allNodeConfigs },
+  registerNodeConstructor: registerNodeConstructor,
+  getNodeConstructor: getNodeConstructor,
 }
 
 module.exports = loader
