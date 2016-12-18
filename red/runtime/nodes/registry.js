@@ -1,46 +1,32 @@
-const when = require('when')
 const fs = require('fs')
 const path = require('path')
-const semver = require('semver')
 const forOwn = require('lodash/forOwn')
 const util = require('util')
 const events = require('../events')
 
-const dotsMap = require('../../dotsLoader')
+const dotsPathMap = require('../../dotsLoader')
 
-function createDot(path) {
-  const parts = path.split('/')
-  return {
-    module: 'node-red',
-    version: '0.15.2',
-    file: path + '.js',
-    types: [],
-    name: parts[parts.length -1].replace(/^\d+\-/, ''),
-  }
-}
-
-function createDotFiles(paths) {
-  const nodes = {}
-  forOwn(paths, (value, key) => {
-    nodes[key] = createDot(value)
-  })
-  return nodes
-}
-
+let Node
+let runtime
 const nodeList = []
 let allNodeConfigs
-const nodesMap = createDotFiles(dotsMap)
+const nodeConfigs = []
+let nodeConstructors = {}
+
+
+function init(_runtime) {
+  runtime = _runtime
+  nodeConstructors = {}
+  Node = require('./Node')
+}
+
+forOwn(dotsPathMap, (dotPath, dotName) => {
+  nodeConfigs.push(createDotConfig(dotPath, dotName))
+})
 
 function load() {
-
-  const nodeConfigs = []
-  forOwn(nodesMap, node => {
-    nodeConfigs.push(loadNodeConfig(node))
-  })
-
   nodeConfigs.forEach(node => {
     const { name, module, id, types, version } = node
-    nodesMap[node.name] = node
     nodeList.push({id, name, types, version, module })
     allNodeConfigs += node.mainContent
     allNodeConfigs += node.helpContent
@@ -49,58 +35,17 @@ function load() {
   })
 }
 
-//======================================================================
-
-var Node
-var nodeConstructors = {}
-
-function getNode(id) {
-  const parts = id.split('/')
-  return parts[parts.length - 1]
-}
-
-function registerType(nodeSet, type, constructor) {
-  if (nodeConstructors.hasOwnProperty(type)) {
-    throw new Error(type+' already registered')
-  }
-  if(!(constructor.prototype instanceof Node)) {
-    util.inherits(constructor, Node)
-  }
-  const nodeSetInfo = nodesMap[getNode(nodeSet)]
-  if (nodeSetInfo.types.indexOf(type) === -1) {
-    // A type is being registered for a known set, but for some reason
-    // we didn't spot it when parsing the HTML file.
-    // Registered a type is the definitive action - not the presence
-    // of an edit template. Ensure it is on the list of known types.
-    nodeSetInfo.types.push(type)
-  }
-
-  nodeConstructors[type] = constructor
-  events.emit('type-registered', type)
-}
-function getNodeConstructor(type) {
-  return nodeConstructors[type]
-}
-//=====================================================================
-
-
-let runtime
-function init(_runtime) {
-  runtime = _runtime
-  nodeConstructors = {}
-  Node = require('./Node')
-}
-
-function loadNodeConfig(nodeMeta) {
-  const { file, module, name, version  } = nodeMeta
-  const id = `${module}/${name}`
-  const template = file.replace(/\.js$/,'.html')
-
+function createDotConfig(dotPath, dotName) {
+  // const parts = dotPath.split('/')
+  // const name = parts[parts.length -1].replace(/^\d+\-/, '')
+  const module = 'node-red'
+  const id = `${module}/${dotName}`
+  const template = dotPath + '.html'
   const node = {
     id,
+    name: dotName,
     module,
-    name,
-    file,
+    file: dotPath + '.js',
     template,
     types: [],
   }
@@ -121,6 +66,31 @@ function loadNodeConfig(nodeMeta) {
   node.mainContent = mainContent
   node.helpContent = helpContent
   return node
+}
+
+function getNode(id) {
+  const parts = id.split('/')
+  return parts[parts.length - 1]
+}
+
+function registerType(nodeSet, type, constructor) {
+  if (nodeConstructors.hasOwnProperty(type)) {
+    throw new Error(type+' already registered')
+  }
+  if(!(constructor.prototype instanceof Node)) {
+    util.inherits(constructor, Node)
+  }
+  const nodeSetInfo = nodeConfigs.filter(node => node.name === getNode(nodeSet))[0]
+  if (nodeSetInfo.types.indexOf(type) === -1) {
+    nodeSetInfo.types.push(type)
+  }
+
+  nodeConstructors[type] = constructor
+  events.emit('type-registered', type)
+}
+
+function getNodeConstructor(type) {
+  return nodeConstructors[type]
 }
 
 function createNodeApi(nodeId) {
