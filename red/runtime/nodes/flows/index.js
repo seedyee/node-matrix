@@ -120,30 +120,6 @@ function getFlows() {
   return activeConfig
 }
 
-function delegateError(node,logMessage,msg) {
-  if (activeFlows[node.z]) {
-    activeFlows[node.z].handleError(node,logMessage,msg)
-  } else if (activeNodesToFlow[node.z]) {
-    activeFlows[activeNodesToFlow[node.z]].handleError(node,logMessage,msg)
-  } else if (activeFlowConfig.subflows[node.z]) {
-    subflowInstanceNodeMap[node.id].forEach(function(n) {
-      delegateError(getNode(n),logMessage,msg)
-    })
-  }
-}
-function handleError(node,logMessage,msg) {
-  if (node.z) {
-    delegateError(node,logMessage,msg)
-  } else {
-    if (activeFlowConfig.configs[node.id]) {
-      activeFlowConfig.configs[node.id]._users.forEach(function(id) {
-        var userNode = activeFlowConfig.allNodes[id]
-        delegateError(userNode,logMessage,msg)
-      })
-    }
-  }
-}
-
 function delegateStatus(node,statusMessage) {
   if (activeFlows[node.z]) {
     activeFlows[node.z].handleStatus(node,statusMessage)
@@ -250,7 +226,6 @@ module.exports = {
   startFlows: start,
   stopFlows,
   get started() { return started },
-  handleError,
   handleStatus,
   disableFlow: null,
   enableFlow: null,
