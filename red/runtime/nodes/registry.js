@@ -15,7 +15,7 @@ const nodeConstructors = {}
 
 function init(_runtime) {
   runtime = _runtime
-  Node = require('./Node')
+  Node = require('./Node').Node
 }
 
 forOwn(nodesPathMap, (nodePath, nodeName) => {

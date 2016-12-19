@@ -251,4 +251,22 @@ Node.prototype.metric = function(eventname, msg, metricValue) {
 Node.prototype.status = function(status) {
   flows.handleStatus(this,status)
 }
-module.exports = Node
+
+/**
+ * Called from a Node's constructor function, invokes the super-class
+ * constructor and attaches any credentials to the node.
+ * @param node the node object being created
+ * @param def the instance definition for the node
+ */
+function createNode(node, def) {
+  Node.call(node, def)
+  let id = node.id
+  if (def._alias) {
+    id = def._alias
+  }
+}
+
+module.exports = {
+  Node,
+  createNode,
+}
