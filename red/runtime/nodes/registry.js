@@ -2,7 +2,6 @@ const fs = require('fs')
 const path = require('path')
 const forOwn = require('lodash/forOwn')
 const util = require('util')
-const events = require('../events')
 
 const nodesPathMap = require('../../nodesLoader')
 
@@ -83,7 +82,6 @@ function registerType(nodeSet, type, constructor) {
   }
 
   nodeConstructorsMap[type] = constructor
-  events.emit('type-registered', type)
 }
 
 function createNodeApi(nodeId) {

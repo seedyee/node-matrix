@@ -18,29 +18,12 @@ var started = false
 var activeNodesToFlow = {}
 var subflowInstanceNodeMap = {}
 
-var typeEventRegistered = false
-
 function init(runtime) {
   if (started) {
     throw new Error('Cannot init without a stop')
   }
   storage = runtime.storage
   started = false
-  if (!typeEventRegistered) {
-    events.on('type-registered', function(type) {
-      if (activeFlowConfig && activeFlowConfig.missingTypes.length > 0) {
-        var i = activeFlowConfig.missingTypes.indexOf(type)
-        if (i != -1) {
-          log.info(log._('nodes.flows.registered-missing', {type:type}))
-          activeFlowConfig.missingTypes.splice(i,1)
-          if (activeFlowConfig.missingTypes.length === 0 && started) {
-            start()
-          }
-        }
-      }
-    })
-    typeEventRegistered = true
-  }
 }
 
 function loadFlows() {
