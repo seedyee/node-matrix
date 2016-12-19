@@ -33,8 +33,8 @@ module.exports = {
   setFlows:   flows.setFlows,
   getFlows:   flows.getFlows,
 
-  addFlow:     flows.addFlow,
-  getFlow:     flows.getFlow,
-  updateFlow:  flows.updateFlow,
-  removeFlow:  flows.removeFlow,
+  // addFlow:     flows.addFlow,
+  // getFlow:     flows.getFlow,
+  // updateFlow:  flows.updateFlow,
+  // removeFlow:  flows.removeFlow,
 }

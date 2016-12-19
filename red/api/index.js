@@ -7,7 +7,6 @@ const cors = require('cors')
 const ui = require('./ui')
 const nodes = require('./nodes')
 const flows = require('./flows')
-const flow = require('./flow')
 const library = require('./library')
 const locales = require('./locales')
 const comms = require('./comms')
@@ -33,7 +32,6 @@ function init(_server, _runtime) {
   comms.init(server, runtime)
   adminApp = express()
   flows.init(runtime)
-  flow.init(runtime)
   library.init(adminApp, runtime)
   nodes.init(runtime)
 
@@ -57,11 +55,6 @@ function init(_server, _runtime) {
   // Flows
   adminApp.get('/flows', flows.get, errorHandler)
   adminApp.post('/flows', flows.post,errorHandler)
-
-  adminApp.get('/flow/:id', flow.get,errorHandler)
-  adminApp.post('/flow', flow.post,errorHandler)
-  adminApp.delete('/flow/:id', flow.delete,errorHandler)
-  adminApp.put('/flow/:id', flow.put,errorHandler)
 
   // Nodes
   adminApp.get('/nodes', nodes.getAll,errorHandler)

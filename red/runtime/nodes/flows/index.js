@@ -258,210 +258,194 @@ function stopFlows() {
   })
 }
 
-function updateMissingTypes() {
-  var subflowInstanceRE = /^subflow:(.+)$/
-  activeFlowConfig.missingTypes = []
+// function getFlow(id) {
+//   var flow
+//   if (id === 'global') {
+//     flow = activeFlowConfig
+//   } else {
+//     flow = activeFlowConfig.flows[id]
+//   }
+//   if (!flow) {
+//     return null
+//   }
+//   var result = {
+//     id: id
+//   }
+//   if (flow.label) {
+//     result.label = flow.label
+//   }
+//   if (id !== 'global') {
+//     result.nodes = []
+//   }
+//   if (flow.nodes) {
+//     var nodeIds = Object.keys(flow.nodes)
+//     if (nodeIds.length > 0) {
+//       result.nodes = nodeIds.map(function(nodeId) {
+//         var node = clone(flow.nodes[nodeId])
+//         if (node.type === 'link out') {
+//           delete node.wires
+//         }
+//         return node
+//       })
+//     }
+//   }
+//   if (flow.configs) {
+//     var configIds = Object.keys(flow.configs)
+//     result.configs = configIds.map(function(configId) {
+//       return clone(flow.configs[configId])
+//     })
+//     if (result.configs.length === 0) {
+//       delete result.configs
+//     }
+//   }
+//   if (flow.subflows) {
+//     var subflowIds = Object.keys(flow.subflows)
+//     result.subflows = subflowIds.map(function(subflowId) {
+//       var subflow = clone(flow.subflows[subflowId])
+//       var nodeIds = Object.keys(subflow.nodes)
+//       subflow.nodes = nodeIds.map(function(id) {
+//         return subflow.nodes[id]
+//       })
+//       if (subflow.configs) {
+//         var configIds = Object.keys(subflow.configs)
+//         subflow.configs = configIds.map(function(id) {
+//           return subflow.configs[id]
+//         })
+//       }
+//       delete subflow.instances
+//       return subflow
+//     })
+//     if (result.subflows.length === 0) {
+//       delete result.subflows
+//     }
+//   }
+//   return result
+// }
 
-  for (var id in activeFlowConfig.allNodes) {
-    if (activeFlowConfig.allNodes.hasOwnProperty(id)) {
-      var node = activeFlowConfig.allNodes[id]
-      if (node.type !== 'tab' && node.type !== 'subflow') {
-        var subflowDetails = subflowInstanceRE.exec(node.type)
-        if ( (subflowDetails && !activeFlowConfig.subflows[subflowDetails[1]]) || (!subflowDetails && !typeRegistry.get(node.type)) ) {
-          if (activeFlowConfig.missingTypes.indexOf(node.type) === -1) {
-            activeFlowConfig.missingTypes.push(node.type)
-          }
-        }
-      }
-    }
-  }
-}
+// function addFlow(flow) {
+//   console.log('---------------------add Flow')
+//   var i,node
+//   if (!flow.hasOwnProperty('nodes')) {
+//     throw new Error('missing nodes property')
+//   }
+//   flow.id = redUtil.generateId()
 
-function addFlow(flow) {
-  var i,node
-  if (!flow.hasOwnProperty('nodes')) {
-    throw new Error('missing nodes property')
-  }
-  flow.id = redUtil.generateId()
+//   var nodes = [{
+//     type:'tab',
+//     label:flow.label,
+//     id:flow.id
+//   }]
 
-  var nodes = [{
-    type:'tab',
-    label:flow.label,
-    id:flow.id
-  }]
+//   for (i=0; i<flow.nodes.length; i++) {
+//     node = flow.nodes[i]
+//     if (activeFlowConfig.allNodes[node.id]) {
+//       // TODO nls
+//       return when.reject(new Error('duplicate id'))
+//     }
+//     if (node.type === 'tab' || node.type === 'subflow') {
+//       return when.reject(new Error('invalid node type: '+node.type))
+//     }
+//     node.z = flow.id
+//     nodes.push(node)
+//   }
+//   if (flow.configs) {
+//     for (i=0; i<flow.configs.length; i++) {
+//       node = flow.configs[i]
+//       if (activeFlowConfig.allNodes[node.id]) {
+//         // TODO nls
+//         return when.reject(new Error('duplicate id'))
+//       }
+//       if (node.type === 'tab' || node.type === 'subflow') {
+//         return when.reject(new Error('invalid node type: '+node.type))
+//       }
+//       node.z = flow.id
+//       nodes.push(node)
+//     }
+//   }
+//   var newConfig = clone(activeConfig.flows)
+//   newConfig = newConfig.concat(nodes)
 
-  for (i=0; i<flow.nodes.length; i++) {
-    node = flow.nodes[i]
-    if (activeFlowConfig.allNodes[node.id]) {
-      // TODO nls
-      return when.reject(new Error('duplicate id'))
-    }
-    if (node.type === 'tab' || node.type === 'subflow') {
-      return when.reject(new Error('invalid node type: '+node.type))
-    }
-    node.z = flow.id
-    nodes.push(node)
-  }
-  if (flow.configs) {
-    for (i=0; i<flow.configs.length; i++) {
-      node = flow.configs[i]
-      if (activeFlowConfig.allNodes[node.id]) {
-        // TODO nls
-        return when.reject(new Error('duplicate id'))
-      }
-      if (node.type === 'tab' || node.type === 'subflow') {
-        return when.reject(new Error('invalid node type: '+node.type))
-      }
-      node.z = flow.id
-      nodes.push(node)
-    }
-  }
-  var newConfig = clone(activeConfig.flows)
-  newConfig = newConfig.concat(nodes)
+//   return setFlows(newConfig,'flows',true).then(function() {
+//     return flow.id
+//   })
+// }
 
-  return setFlows(newConfig,'flows',true).then(function() {
-    return flow.id
-  })
-}
 
-function getFlow(id) {
-  var flow
-  if (id === 'global') {
-    flow = activeFlowConfig
-  } else {
-    flow = activeFlowConfig.flows[id]
-  }
-  if (!flow) {
-    return null
-  }
-  var result = {
-    id: id
-  }
-  if (flow.label) {
-    result.label = flow.label
-  }
-  if (id !== 'global') {
-    result.nodes = []
-  }
-  if (flow.nodes) {
-    var nodeIds = Object.keys(flow.nodes)
-    if (nodeIds.length > 0) {
-      result.nodes = nodeIds.map(function(nodeId) {
-        var node = clone(flow.nodes[nodeId])
-        if (node.type === 'link out') {
-          delete node.wires
-        }
-        return node
-      })
-    }
-  }
-  if (flow.configs) {
-    var configIds = Object.keys(flow.configs)
-    result.configs = configIds.map(function(configId) {
-      return clone(flow.configs[configId])
-    })
-    if (result.configs.length === 0) {
-      delete result.configs
-    }
-  }
-  if (flow.subflows) {
-    var subflowIds = Object.keys(flow.subflows)
-    result.subflows = subflowIds.map(function(subflowId) {
-      var subflow = clone(flow.subflows[subflowId])
-      var nodeIds = Object.keys(subflow.nodes)
-      subflow.nodes = nodeIds.map(function(id) {
-        return subflow.nodes[id]
-      })
-      if (subflow.configs) {
-        var configIds = Object.keys(subflow.configs)
-        subflow.configs = configIds.map(function(id) {
-          return subflow.configs[id]
-        })
-      }
-      delete subflow.instances
-      return subflow
-    })
-    if (result.subflows.length === 0) {
-      delete result.subflows
-    }
-  }
-  return result
-}
+// function updateFlow(id,newFlow) {
+//   var label = id
+//   if (id !== 'global') {
+//     if (!activeFlowConfig.flows[id]) {
+//       var e = new Error()
+//       e.code = 404
+//       throw e
+//     }
+//     label = activeFlowConfig.flows[id].label
+//   }
+//   var newConfig = clone(activeConfig.flows)
+//   var nodes
 
-function updateFlow(id,newFlow) {
-  var label = id
-  if (id !== 'global') {
-    if (!activeFlowConfig.flows[id]) {
-      var e = new Error()
-      e.code = 404
-      throw e
-    }
-    label = activeFlowConfig.flows[id].label
-  }
-  var newConfig = clone(activeConfig.flows)
-  var nodes
+//   if (id === 'global') {
+//     // Remove all nodes whose z is not a known flow
+//     // When subflows can be owned by a flow, this logic will have to take
+//     // that into account
+//     newConfig = newConfig.filter(function(node) {
+//       return node.type === 'tab' || (node.hasOwnProperty('z') && activeFlowConfig.flows.hasOwnProperty(node.z))
+//     })
 
-  if (id === 'global') {
-    // Remove all nodes whose z is not a known flow
-    // When subflows can be owned by a flow, this logic will have to take
-    // that into account
-    newConfig = newConfig.filter(function(node) {
-      return node.type === 'tab' || (node.hasOwnProperty('z') && activeFlowConfig.flows.hasOwnProperty(node.z))
-    })
+//     // Add in the new config nodes
+//     nodes = newFlow.configs||[]
+//     if (newFlow.subflows) {
+//       // Add in the new subflows
+//       newFlow.subflows.forEach(function(sf) {
+//         nodes = nodes.concat(sf.nodes||[]).concat(sf.configs||[])
+//         delete sf.nodes
+//         delete sf.configs
+//         nodes.push(sf)
+//       })
+//     }
+//   } else {
+//     newConfig = newConfig.filter(function(node) {
+//       return node.z !== id && node.id !== id
+//     })
+//     var tabNode = {
+//       type:'tab',
+//       label:newFlow.label,
+//       id:id
+//     }
+//     nodes = [tabNode].concat(newFlow.nodes||[]).concat(newFlow.configs||[])
+//     nodes.forEach(function(n) {
+//       n.z = id
+//     })
+//   }
 
-    // Add in the new config nodes
-    nodes = newFlow.configs||[]
-    if (newFlow.subflows) {
-      // Add in the new subflows
-      newFlow.subflows.forEach(function(sf) {
-        nodes = nodes.concat(sf.nodes||[]).concat(sf.configs||[])
-        delete sf.nodes
-        delete sf.configs
-        nodes.push(sf)
-      })
-    }
-  } else {
-    newConfig = newConfig.filter(function(node) {
-      return node.z !== id && node.id !== id
-    })
-    var tabNode = {
-      type:'tab',
-      label:newFlow.label,
-      id:id
-    }
-    nodes = [tabNode].concat(newFlow.nodes||[]).concat(newFlow.configs||[])
-    nodes.forEach(function(n) {
-      n.z = id
-    })
-  }
+//   newConfig = newConfig.concat(nodes)
+//   return setFlows(newConfig,'flows',true).then(function() {
+//     log.info(log._('nodes.flows.updated-flow',{label:(label?label+' ':'')+'['+id+']'}))
+//   })
+// }
 
-  newConfig = newConfig.concat(nodes)
-  return setFlows(newConfig,'flows',true).then(function() {
-    log.info(log._('nodes.flows.updated-flow',{label:(label?label+' ':'')+'['+id+']'}))
-  })
-}
+// function removeFlow(id) {
+//   console.log('remove Flow')
+//   if (id === 'global') {
+//     // TODO: nls + error code
+//     throw new Error('not allowed to remove global')
+//   }
+//   var flow = activeFlowConfig.flows[id]
+//   if (!flow) {
+//     var e = new Error()
+//     e.code = 404
+//     throw e
+//   }
 
-function removeFlow(id) {
-  if (id === 'global') {
-    // TODO: nls + error code
-    throw new Error('not allowed to remove global')
-  }
-  var flow = activeFlowConfig.flows[id]
-  if (!flow) {
-    var e = new Error()
-    e.code = 404
-    throw e
-  }
+//   var newConfig = clone(activeConfig.flows)
+//   newConfig = newConfig.filter(function(node) {
+//     return node.z !== id && node.id !== id
+//   })
 
-  var newConfig = clone(activeConfig.flows)
-  newConfig = newConfig.filter(function(node) {
-    return node.z !== id && node.id !== id
-  })
-
-  return setFlows(newConfig,'flows',true).then(function() {
-    log.info(log._('nodes.flows.removed-flow',{label:(flow.label?flow.label+' ':'')+'['+flow.id+']'}))
-  })
-}
+//   return setFlows(newConfig,'flows',true).then(function() {
+//     log.info(log._('nodes.flows.removed-flow',{label:(flow.label?flow.label+' ':'')+'['+flow.id+']'}))
+//   })
+// }
 
 module.exports = {
   init,
@@ -477,10 +461,10 @@ module.exports = {
   get started() { return started },
   handleError,
   handleStatus,
-  addFlow,
-  getFlow,
-  updateFlow,
-  removeFlow,
+  // addFlow,
+  // getFlow,
+  // updateFlow,
+  // removeFlow,
   disableFlow: null,
   enableFlow: null,
 }
