@@ -48,7 +48,7 @@ function init(runtime) {
 function loadFlows() {
   return storage.getFlows()
     .then(config => config)
-    .otherwise(err => {
+    .catch(err => {
       log.warn(`flows error: error.toString()`)
       console.log(err.stack)
     })
@@ -74,11 +74,10 @@ function load() {
  * @param type the type of deployment to do: full (default), nodes, flows, load
  * @return a promise for the saving/starting of the new flow
  */
-function setFlows(_config = full, type, muteLog) {
+function setFlows(_config, type) {
 
   var configSavePromise = null
   var config = null
-  var diff
   var newFlowConfig
 
   if (type === 'load') {
@@ -91,12 +90,9 @@ function setFlows(_config = full, type, muteLog) {
   } else {
     config = clone(_config)
     newFlowConfig = flowUtil.parseConfig(clone(config))
-    if (type !== 'full') {
-      diff = flowUtil.diffConfigs(activeFlowConfig,newFlowConfig)
-    }
+    console.log(type)
     configSavePromise = storage.saveFlows({ flows: config})
   }
-
   return configSavePromise
     .then(function(flowRevision) {
       activeConfig = {
@@ -105,11 +101,12 @@ function setFlows(_config = full, type, muteLog) {
       }
       activeFlowConfig = newFlowConfig
       if (started) {
-        return stopFlows(type,diff,muteLog).then(function() {
+        return stopFlows().then(function() {
           context.clean(activeFlowConfig)
-          start(type,diff,muteLog)
+          start(type)
           return flowRevision
-        }).otherwise(function(err) {
+        }).catch(function(err) {
+          console.log(err)
         })
       }
     })
@@ -192,45 +189,23 @@ function handleStatus(node,statusMessage) {
 }
 
 
-function start(type, diff, muteLog) {
-  //dumpActiveNodes()
-  type = type||'full'
+function start(type = 'full') {
   started = true
-  if (!muteLog) {
-    if (diff) {
-      log.info(`flows modified ${type}`)
-    } else {
-      log.info('starting flows')
-    }
-  }
+  log.info('starting flows')
   var id
-  if (!diff) {
-    if (!activeFlows['global']) {
-      activeFlows['global'] = Flow.create(activeFlowConfig)
-    }
-    for (id in activeFlowConfig.flows) {
-      if (activeFlowConfig.flows.hasOwnProperty(id)) {
-        if (!activeFlows[id]) {
-          activeFlows[id] = Flow.create(activeFlowConfig,activeFlowConfig.flows[id])
-        }
-      }
-    }
-  } else {
-    activeFlows['global'].update(activeFlowConfig,activeFlowConfig)
-    for (id in activeFlowConfig.flows) {
-      if (activeFlowConfig.flows.hasOwnProperty(id)) {
-        if (activeFlows[id]) {
-          activeFlows[id].update(activeFlowConfig,activeFlowConfig.flows[id])
-        } else {
-          activeFlows[id] = Flow.create(activeFlowConfig,activeFlowConfig.flows[id])
-        }
+  if (!activeFlows['global']) {
+    activeFlows['global'] = Flow.create(activeFlowConfig)
+  }
+  for (id in activeFlowConfig.flows) {
+    if (activeFlowConfig.flows.hasOwnProperty(id)) {
+      if (!activeFlows[id]) {
+        activeFlows[id] = Flow.create(activeFlowConfig,activeFlowConfig.flows[id])
       }
     }
   }
-
   for (id in activeFlows) {
     if (activeFlows.hasOwnProperty(id)) {
-      activeFlows[id].start(diff)
+      activeFlows[id].start(null)
       var activeNodes = activeFlows[id].getActiveNodes()
       Object.keys(activeNodes).forEach(function(nid) {
         activeNodesToFlow[nid] = id
@@ -243,14 +218,7 @@ function start(type, diff, muteLog) {
     }
   }
   events.emit('nodes-started')
-  if (!muteLog) {
-
-    if (diff) {
-      log.info(`flows modified ${type}`)
-    } else {
-      log.info('flows started')
-    }
-  }
+  log.info('flows started')
   return when.resolve()
 }
 
@@ -258,31 +226,17 @@ function start(type, diff, muteLog) {
  * Stops the current flow configuration
  * @return a promise for the stopping of the flow
  */
-function stopFlows(type = 'full', diff, muteLog) {
-  if (!muteLog) {
-    if (diff) {
-      log.info(`stopping flows: ${type}`)
-    } else {
-      log.info(`stopping flows`)
-    }
-  }
+function stopFlows() {
+  log.info(`stopping flows`)
   started = false
   var promises = []
   var stopList
-  if (type === 'nodes') {
-    stopList = diff.changed.concat(diff.removed)
-  } else if (type === 'flows') {
-    stopList = diff.changed.concat(diff.removed).concat(diff.linked)
-  }
   for (var id in activeFlows) {
     if (activeFlows.hasOwnProperty(id)) {
       promises = promises.concat(activeFlows[id].stop(stopList))
-      if (!diff || diff.removed.indexOf(id)!==-1) {
-        delete activeFlows[id]
-      }
+      delete activeFlows[id]
     }
   }
-
   return when.promise(function(resolve,reject) {
     when.settle(promises).then(function() {
       for (id in activeNodesToFlow) {
@@ -297,14 +251,8 @@ function stopFlows(type = 'full', diff, muteLog) {
           delete activeNodesToFlow[id]
         })
       }
-      // Ideally we'd prune just what got stopped - but mapping stopList
-      // id to the list of subflow instance nodes is something only Flow
-      // can do... so cheat by wiping the map knowing it'll be rebuilt
-      // in start()
       subflowInstanceNodeMap = {}
-      if (!muteLog) {
-        log.info('flows stopped')
-      }
+      log.info('flows stopped')
       resolve()
     })
   })
@@ -522,16 +470,8 @@ module.exports = {
   get: getNode,
   eachNode,
 
-  /**
-   * Gets the current flow configuration
-   */
   getFlows,
-
   setFlows,
-
-  /**
-   * Starts the current flow configuration
-   */
   startFlows: start,
   stopFlows,
   get started() { return started },
