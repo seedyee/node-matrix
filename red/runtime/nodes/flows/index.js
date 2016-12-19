@@ -40,7 +40,7 @@ function loadFlows() {
  * @return a promise for the loading of the config
  */
 function load() {
-  return setFlows(null, 'load', false)
+  return setFlows(null, 'load')
 }
 
 /*
@@ -71,7 +71,6 @@ function setFlows(_config, type) {
   } else {
     config = clone(_config)
     newFlowConfig = flowUtil.parseConfig(clone(config))
-    console.log(type)
     configSavePromise = storage.saveFlows({ flows: config})
   }
   return configSavePromise

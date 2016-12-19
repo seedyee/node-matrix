@@ -80,9 +80,9 @@ const localfilesystem = {
   },
 
   saveFlows: function(flows) {
+    // flowData = JSON.stringify(flows)
     //flowFilePretty
-    // flowData = JSON.stringify(flows,null,4)
-    const flowData = JSON.stringify(flows)
+    const flowData = JSON.stringify(flows, null, 4)
     return writeFile(settings.flowsFile, flowData)
   },
 

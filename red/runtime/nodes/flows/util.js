@@ -1,26 +1,6 @@
 var clone = require("clone");
 var redUtil = require("../../util");
 var subflowInstanceRE = /^subflow:(.+)$/;
-var typeRegistry = require("../registry");
-
-function diffNodes(oldNode,newNode) {
-  if (oldNode == null) {
-    return true;
-  }
-  var oldKeys = Object.keys(oldNode).filter(function(p) { return p != "x" && p != "y" && p != "wires" });
-  var newKeys = Object.keys(newNode).filter(function(p) { return p != "x" && p != "y" && p != "wires" });
-  if (oldKeys.length != newKeys.length) {
-    return true;
-  }
-  for (var i=0;i<newKeys.length;i++) {
-    var p = newKeys[i];
-    if (!redUtil.compareObjects(oldNode[p],newNode[p])) {
-      return true;
-    }
-  }
-
-  return false;
-}
 
 var EnvVarPropertyRE = /^\$\((\S+)\)$/;
 
@@ -49,7 +29,6 @@ function mapEnvVarProperties(obj,prop) {
 
 module.exports = {
 
-  diffNodes: diffNodes,
   mapEnvVarProperties: mapEnvVarProperties,
 
   parseConfig: function(config) {
@@ -69,26 +48,10 @@ module.exports = {
         flow.flows[n.id].nodes = {};
       }
     });
-
-    config.forEach(function(n) {
-      if (n.type === 'subflow') {
-        flow.subflows[n.id] = n;
-        flow.subflows[n.id].configs = {};
-        flow.subflows[n.id].nodes = {};
-        flow.subflows[n.id].instances = [];
-      }
-    });
     var linkWires = {};
     var linkOutNodes = [];
     config.forEach(function(n) {
-      if (n.type !== 'subflow' && n.type !== 'tab') {
-        var subflowDetails = subflowInstanceRE.exec(n.type);
-
-        if ( (subflowDetails && !flow.subflows[subflowDetails[1]]) || (!subflowDetails && !typeRegistry.getType(n.type)) ) {
-          if (flow.missingTypes.indexOf(n.type) === -1) {
-            flow.missingTypes.push(n.type);
-          }
-        }
+      if (n.type !== 'tab') {
         var container = null;
         if (flow.flows[n.z]) {
           container = flow.flows[n.z];
@@ -96,11 +59,6 @@ module.exports = {
           container = flow.subflows[n.z];
         }
         if (n.hasOwnProperty('x') && n.hasOwnProperty('y')) {
-          if (subflowDetails) {
-            var subflowType = subflowDetails[1]
-            n.subflow = subflowType;
-            flow.subflows[subflowType].instances.push(n)
-          }
           if (container) {
             container.nodes[n.id] = n;
           }
@@ -133,10 +91,9 @@ module.exports = {
       n.wires = [targets];
     });
 
-
     var addedTabs = {};
     config.forEach(function(n) {
-      if (n.type !== 'subflow' && n.type !== 'tab') {
+      if (n.type !== 'tab') {
         for (var prop in n) {
           if (n.hasOwnProperty(prop) && prop !== 'id' && prop !== 'wires' && prop !== 'type' && prop !== '_users' && flow.configs.hasOwnProperty(n[prop])) {
             // This property references a global config node
