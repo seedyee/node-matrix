@@ -11,12 +11,10 @@ let runtime
 const nodeList = []
 let allNodeConfigs
 const nodeConfigs = []
-let nodeConstructors = {}
-
+const nodeConstructors = {}
 
 function init(_runtime) {
   runtime = _runtime
-  nodeConstructors = {}
   Node = require('./Node')
 }
 
@@ -100,6 +98,7 @@ function createNodeApi(nodeId) {
     getNode,
     eachNode,
   }
+
   const logApi = {
     log,
     info,
@@ -135,8 +134,8 @@ function createNodeApi(nodeId) {
 }
 
 module.exports = {
-  init: init,
-  load: load,
+  init,
+  load,
   registerType,
   getType: function (type) { return nodeConstructors[type] },
   getNodeList: function() { return nodeList },
