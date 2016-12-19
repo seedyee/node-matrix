@@ -36,8 +36,6 @@ function load() {
 }
 
 function createNodeConfig(nodePath, nodeName) {
-  // const parts = nodePath.split('/')
-  // const name = parts[parts.length -1].replace(/^\d+\-/, '')
   const module = 'node-red'
   const id = `${module}/${nodeName}`
   const template = nodePath + '.html'

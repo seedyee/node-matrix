@@ -32,7 +32,7 @@ var runtime = module.exports = {
   settings,
   storage,
   events,
-  nodes: nodes,
+  nodes,
   util,
   get adminApi() { return api },
 }
