@@ -118,7 +118,7 @@ function createNodeApi(nodeId) {
   }
   red.nodes.registerType = function(type, constructor, opts) {
     // node.id --> node-red/lower-case, type --> lower-case, constructor: func
-    runtime.nodes.registerType(nodeId, type, constructor, opts)
+    registerType(nodeId, type, constructor)
   }
   const adminApi = runtime.adminApi
   red.comms = adminApi.comms

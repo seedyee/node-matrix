@@ -4,17 +4,6 @@ const context = require('./context')
 const Node = require('./Node')
 
 /**
- * Registers a node constructor
- * @param nodeSet - the nodeSet providing the node (module/set)
- * @param type - the string type name
- * @param constructor - the constructor function for this node type
- * @param opts - optional additional options for the node
- */
-function registerType(nodeSet, type, constructor, opts) {
-  registry.registerType(nodeSet, type, constructor)
-}
-
-/**
  * Called from a Node's constructor function, invokes the super-class
  * constructor and attaches any credentials to the node.
  * @param node the node object being created
@@ -45,7 +34,7 @@ module.exports = {
   eachNode: flows.eachNode,
 
   // Node type registry
-  registerType: registerType,
+  registerType: registry.registerType,
   // getType: registry.getType,
 
   getNodeList: registry.getNodeList,
