@@ -8,15 +8,11 @@ const log = require('../../log')
 const events = require('../../events')
 
 var storage = null
-
 var activeConfig = null
 var activeFlowConfig = null
-
 var activeFlows = {}
 var started = false
-
 var activeNodesToFlow = {}
-var subflowInstanceNodeMap = {}
 
 function init(runtime) {
   if (started) {
@@ -42,12 +38,6 @@ function loadFlows() {
 function load() {
   return setFlows(null, 'load')
 }
-
-/*
- * _config - new node array configuration
- * type - full/nodes/flows/load (default full)
- * muteLog - don't emit the standard log messages (used for individual flow api)
- */
 
 /**
  * Sets the current active config.
@@ -127,6 +117,7 @@ function delegateStatus(node,statusMessage) {
     activeFlows[activeNodesToFlow[node.z]].handleStatus(node,statusMessage)
   }
 }
+
 function handleStatus(node,statusMessage) {
   events.emit('node-status',{
     id: node.id,
@@ -145,82 +136,43 @@ function handleStatus(node,statusMessage) {
 }
 
 
-function start(type = 'full') {
+function start() {
   started = true
   log.info('starting flows')
   var id
-  if (!activeFlows['global']) {
-    activeFlows['global'] = Flow.create(activeFlowConfig)
-  }
+  activeFlows['global'] = Flow.create(activeFlowConfig)
   for (id in activeFlowConfig.flows) {
-    if (activeFlowConfig.flows.hasOwnProperty(id)) {
-      if (!activeFlows[id]) {
-        activeFlows[id] = Flow.create(activeFlowConfig,activeFlowConfig.flows[id])
-      }
+    if (!activeFlows[id]) {
+      activeFlows[id] = Flow.create(activeFlowConfig,activeFlowConfig.flows[id])
     }
   }
   for (id in activeFlows) {
-    if (activeFlows.hasOwnProperty(id)) {
-      activeFlows[id].start(null)
-      var activeNodes = activeFlows[id].getActiveNodes()
-      Object.keys(activeNodes).forEach(function(nid) {
-        activeNodesToFlow[nid] = id
-        if (activeNodes[nid]._alias) {
-          subflowInstanceNodeMap[activeNodes[nid]._alias] = subflowInstanceNodeMap[activeNodes[nid]._alias] || []
-          subflowInstanceNodeMap[activeNodes[nid]._alias].push(nid)
-        }
-      })
-
-    }
+    activeFlows[id].start(null)
+    var activeNodes = activeFlows[id].getActiveNodes()
   }
   events.emit('nodes-started')
   log.info('flows started')
   return when.resolve()
 }
 
-/**
- * Stops the current flow configuration
- * @return a promise for the stopping of the flow
- */
 function stopFlows() {
   log.info(`stopping flows`)
   started = false
-  var promises = []
-  var stopList
   for (var id in activeFlows) {
     if (activeFlows.hasOwnProperty(id)) {
-      promises = promises.concat(activeFlows[id].stop(stopList))
+      activeFlows[id].stop()
       delete activeFlows[id]
     }
   }
-  return when.promise(function(resolve,reject) {
-    when.settle(promises).then(function() {
-      for (id in activeNodesToFlow) {
-        if (activeNodesToFlow.hasOwnProperty(id)) {
-          if (!activeFlows[activeNodesToFlow[id]]) {
-            delete activeNodesToFlow[id]
-          }
-        }
-      }
-      if (stopList) {
-        stopList.forEach(function(id) {
-          delete activeNodesToFlow[id]
-        })
-      }
-      subflowInstanceNodeMap = {}
-      log.info('flows stopped')
-      resolve()
-    })
-  })
+  log.info('flows stopped')
+  return when.resolve()
 }
 
 module.exports = {
   init,
   load,
-
   get: getNode,
   eachNode,
-
   getFlows,
   setFlows,
   startFlows: start,
