@@ -7,12 +7,14 @@ const flowUtil = require('./util')
 const log = require('../../log')
 const events = require('../../events')
 
+// init --> loadFlows --> startFlows
+// init --> load --> setFlows --> startFlows
+// the z property stands for : --> the id (same as their tab id) specifying which tab this node belong to.
 var storage = null
 var activeConfig = null
 var activeFlowConfig = null
 var activeFlows = {}
 var started = false
-var activeNodesToFlow = {}
 
 function init(runtime) {
   if (started) {
@@ -24,27 +26,12 @@ function init(runtime) {
 
 function loadFlows() {
   return storage.getFlows()
-    .then(config => config)
-    .catch(err => {
-      log.warn(`flows error: error.toString()`)
-      console.log(err.stack)
-    })
 }
 
-/**
- * Load the current flow configuration from storage
- * @return a promise for the loading of the config
- */
 function load() {
   return setFlows(null, 'load')
 }
 
-/**
- * Sets the current active config.
- * @param config the configuration to enable
- * @param type the type of deployment to do: full (default), nodes, flows, load
- * @return a promise for the saving/starting of the new flow
- */
 function setFlows(_config, type) {
 
   var configSavePromise = null
@@ -55,26 +42,23 @@ function setFlows(_config, type) {
     configSavePromise = loadFlows().then(function(_config) {
       config = clone(_config.flows)
       newFlowConfig = flowUtil.parseConfig(clone(config))
-      type = 'full'
-      return _config.rev
     })
   } else {
     config = clone(_config)
     newFlowConfig = flowUtil.parseConfig(clone(config))
     configSavePromise = storage.saveFlows({ flows: config})
   }
+
   return configSavePromise
-    .then(function(flowRevision) {
+    .then(() => {
       activeConfig = {
-        flows:config,
-        rev:flowRevision
+        flows: config,
       }
       activeFlowConfig = newFlowConfig
       if (started) {
         return stopFlows().then(function() {
           context.clean(activeFlowConfig)
-          start(type)
-          return flowRevision
+          start()
         }).catch(function(err) {
           console.log(err)
         })
@@ -82,17 +66,26 @@ function setFlows(_config, type) {
     })
 }
 
+function start() {
+  started = true
+  log.info('starting flows')
+  activeFlows['global'] = Flow.create(activeFlowConfig)
+  for (let id in activeFlowConfig.flows) {
+    activeFlows[id] = Flow.create(activeFlowConfig, activeFlowConfig.flows[id])
+  }
+  for (let id in activeFlows) {
+    activeFlows[id].start()
+  }
+  log.info('flows started')
+  return when.resolve()
+}
+
 function getNode(id) {
   var node
-  if (activeNodesToFlow[id] && activeFlows[activeNodesToFlow[id]]) {
-    return activeFlows[activeNodesToFlow[id]].getNode(id)
-  }
   for (var flowId in activeFlows) {
-    if (activeFlows.hasOwnProperty(flowId)) {
-      node = activeFlows[flowId].getNode(id)
-      if (node) {
-        return node
-      }
+    node = activeFlows[flowId].getNode(id)
+    if (node) {
+      return node
     }
   }
   return null
@@ -100,9 +93,7 @@ function getNode(id) {
 
 function eachNode(cb) {
   for (var id in activeFlowConfig.allNodes) {
-    if (activeFlowConfig.allNodes.hasOwnProperty(id)) {
-      cb(activeFlowConfig.allNodes[id])
-    }
+    cb(activeFlowConfig.allNodes[id])
   }
 }
 
@@ -113,8 +104,6 @@ function getFlows() {
 function delegateStatus(node,statusMessage) {
   if (activeFlows[node.z]) {
     activeFlows[node.z].handleStatus(node,statusMessage)
-  } else if (activeNodesToFlow[node.z]) {
-    activeFlows[activeNodesToFlow[node.z]].handleStatus(node,statusMessage)
   }
 }
 
@@ -135,34 +124,12 @@ function handleStatus(node,statusMessage) {
   }
 }
 
-
-function start() {
-  started = true
-  log.info('starting flows')
-  var id
-  activeFlows['global'] = Flow.create(activeFlowConfig)
-  for (id in activeFlowConfig.flows) {
-    if (!activeFlows[id]) {
-      activeFlows[id] = Flow.create(activeFlowConfig,activeFlowConfig.flows[id])
-    }
-  }
-  for (id in activeFlows) {
-    activeFlows[id].start(null)
-    var activeNodes = activeFlows[id].getActiveNodes()
-  }
-  events.emit('nodes-started')
-  log.info('flows started')
-  return when.resolve()
-}
-
 function stopFlows() {
   log.info(`stopping flows`)
   started = false
   for (var id in activeFlows) {
-    if (activeFlows.hasOwnProperty(id)) {
-      activeFlows[id].stop()
-      delete activeFlows[id]
-    }
+    activeFlows[id].stop()
+    delete activeFlows[id]
   }
   log.info('flows stopped')
   return when.resolve()
