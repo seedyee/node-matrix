@@ -37,6 +37,7 @@ function load() {
 
 function createNodeConfig(nodePath, nodeName) {
   const module = 'node-red'
+  // module + nodeName --> id
   const id = `${module}/${nodeName}`
   const template = nodePath + '.html'
   const node = {
@@ -66,7 +67,7 @@ function createNodeConfig(nodePath, nodeName) {
   return node
 }
 
-function getNode(id) {
+function getNodeName(id) {
   const parts = id.split('/')
   return parts[parts.length - 1]
 }
@@ -78,7 +79,7 @@ function registerType(nodeSet, type, constructor) {
   if(!(constructor.prototype instanceof Node)) {
     util.inherits(constructor, Node)
   }
-  const nodeSetInfo = nodeConfigs.filter(node => node.name === getNode(nodeSet))[0]
+  const nodeSetInfo = nodeConfigs.filter(node => node.name === getNodeName(nodeSet))[0]
   if (nodeSetInfo.types.indexOf(type) === -1) {
     nodeSetInfo.types.push(type)
   }
