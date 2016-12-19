@@ -7,36 +7,37 @@ var Log = require('../log')
 var context = require('./context')
 var flows = require('./flows')
 
-function Node(n) {
-  this.id = n.id
-  this.type = n.type
-  this.z = n.z
+function noop() {}
+function Node(nodeConfig) {
+  const { id, type, z, name, _alias, wires } = nodeConfig
+  this.id = id
+  this.type = type
+  this.z = z
   this._closeCallbacks = []
 
-  if (n.name) {
-    this.name = n.name
+  if (name) {
+    this.name = name
   }
-  if (n._alias) {
-    this._alias = n._alias
+  if (_alias) {
+    this._alias = _alias
   }
-  this.updateWires(n.wires)
+  this.updateWires(wires)
 }
 
 util.inherits(Node, EventEmitter)
 
-Node.prototype.updateWires = function(wires) {
-  //console.log('UPDATE',this.id)
-  this.wires = wires || []
+Node.prototype.updateWires = function(wires = []) {
+  this.wires = wires
   delete this._wire
 
-  var wc = 0
+  let wc = 0
   this.wires.forEach(function(w) {
-    wc += w.length
+    wc+= w.length
   })
   this._wireCount = wc
   if (wc === 0) {
     // With nothing wired to the node, no-op send
-    this.send = function(msg) {}
+    this.send = noop
   } else {
     this.send = Node.prototype.send
     if (this.wires.length === 1 && this.wires[0].length === 1) {
@@ -58,7 +59,7 @@ Node.prototype.context = function() {
 Node.prototype._on = Node.prototype.on
 
 Node.prototype.on = function(event, callback) {
-  var node = this
+  const node = this
   if (event == 'close') {
     this._closeCallbacks.push(callback)
   } else {
@@ -67,8 +68,8 @@ Node.prototype.on = function(event, callback) {
 }
 
 Node.prototype.close = function() {
-  var promises = []
-  var node = this
+  const promises = []
+  const node = this
   this._closeCallbacks.forEach(callback => {
     if (callback.length == 1) {
       promises.push(
@@ -109,7 +110,6 @@ Node.prototype.send = function(msg) {
       if (!msg._msgid) {
         msg._msgid = redUtil.generateId()
       }
-      this.metric('send', msg)
       node = flows.get(this._wire)
       /* istanbul ignore else */
       if (node) {
@@ -121,13 +121,13 @@ Node.prototype.send = function(msg) {
     }
   }
 
-  var numOutputs = this.wires.length
+  const numOutputs = this.wires.length
 
   // Build a list of send events so that all cloning is done before
   // any calls to node.receive
-  var sendEvents = []
+  const sendEvents = []
 
-  var sentMessageId = null
+  let sentMessageId = null
 
   // for each output of node eg. [msgs to output 0, msgs to output 1, ...]
   for (var i = 0; i < numOutputs; i++) {
@@ -170,8 +170,6 @@ Node.prototype.send = function(msg) {
   if (!sentMessageId) {
     sentMessageId = redUtil.generateId()
   }
-  this.metric('send',{_msgid:sentMessageId})
-
   for (i=0; i<sendEvents.length; i++) {
     var ev = sendEvents[i]
     /* istanbul ignore else */
@@ -189,40 +187,38 @@ Node.prototype.receive = function(msg) {
   if (!msg._msgid) {
     msg._msgid = redUtil.generateId()
   }
-  this.metric('receive',msg)
   try {
     this.emit('input', msg)
   } catch(err) {
-    this.error(err,msg)
+    this.error(err, msg)
   }
 }
 
-function log_helper(self, level, msg) {
-  var o = {
+function logHelper(self, level, msg) {
+  const { name, id, type } = self
+  const o = {
     level: level,
-    id: self.id,
-    type: self.type,
-    msg: msg
-  }
-  if (self.name) {
-    o.name = self.name
+    id: id,
+    name,
+    type,
+    msg: msg,
   }
   Log.log(o)
 }
 
 Node.prototype.log = function(msg) {
-  log_helper(this, Log.INFO, msg)
+  logHelper(this, Log.INFO, msg)
 }
 
 Node.prototype.warn = function(msg) {
-  log_helper(this, Log.WARN, msg)
+  logHelper(this, Log.WARN, msg)
 }
 
 Node.prototype.error = function(logMessage,msg) {
   if (typeof logMessage != 'boolean') {
     logMessage = logMessage || ''
   }
-  log_helper(this, Log.ERROR, logMessage)
+  logHelper(this, Log.ERROR, logMessage)
   /* istanbul ignore else */
   if (msg) {
     flows.handleError(this,logMessage,msg)
@@ -232,18 +228,20 @@ Node.prototype.error = function(logMessage,msg) {
 /**
  * If called with no args, returns whether metric collection is enabled
  */
-Node.prototype.metric = function(eventname, msg, metricValue) {
-  if (typeof eventname === 'undefined') {
-    return Log.metric()
-  }
-  var metrics = {}
-  metrics.level = Log.METRIC
-  metrics.nodeid = this.id
-  metrics.event = 'node.'+this.type+'.'+eventname
-  metrics.msgid = msg._msgid
-  metrics.value = metricValue
-  Log.log(metrics)
-}
+// fake metric functino
+Node.prototype.metric = function() { return false }
+// Node.prototype.metric = function(eventname, msg, metricValue) {
+//   if (typeof eventname === 'undefined') {
+//     return Log.metric()
+//   }
+//   var metrics = {}
+//   metrics.level = Log.METRIC
+//   metrics.nodeid = this.id
+//   metrics.event = 'node.'+this.type+'.'+eventname
+//   metrics.msgid = msg._msgid
+//   metrics.value = metricValue
+//   Log.log(metrics)
+// }
 
 /**
  * status: { fill:'red|green', shape:'dot|ring', text:'blah' }
@@ -258,6 +256,19 @@ Node.prototype.status = function(status) {
  * @param node the node object being created
  * @param def the instance definition for the node
  */
+
+// function sample(RED) {
+//   function SampleNode(n) {
+//     const node = this
+//     RED.nodes.createNode(this, n)
+//     this.send('a message')
+//     this.on('input', (v) => {
+//       node.send(v)
+//     })
+//   }
+//   RED.nodes.registerType('sample', SampleNode)
+// }
+
 function createNode(node, def) {
   Node.call(node, def)
   let id = node.id

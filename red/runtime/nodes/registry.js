@@ -11,7 +11,7 @@ let runtime
 const nodeList = []
 let allNodeConfigs
 const nodeConfigs = []
-const nodeConstructors = {}
+const nodeConstructorsMap = {}
 
 function init(_runtime) {
   runtime = _runtime
@@ -71,7 +71,7 @@ function getNodeName(id) {
 }
 
 function registerType(nodeSet, type, constructor) {
-  if (nodeConstructors.hasOwnProperty(type)) {
+  if (nodeConstructorsMap.hasOwnProperty(type)) {
     throw new Error(type+' already registered')
   }
   if(!(constructor.prototype instanceof Node)) {
@@ -82,7 +82,7 @@ function registerType(nodeSet, type, constructor) {
     nodeSetInfo.types.push(type)
   }
 
-  nodeConstructors[type] = constructor
+  nodeConstructorsMap[type] = constructor
   events.emit('type-registered', type)
 }
 
@@ -117,7 +117,7 @@ function createNodeApi(nodeId) {
     version: runtime.version,
   }
   red.nodes.registerType = function(type, constructor, opts) {
-    // node.id --> node-red/lower-case, type --> lower-case, constructor: func
+    // node.id --> node-api/lower-case, type --> lower-case, constructor: func
     registerType(nodeId, type, constructor)
   }
   const adminApi = runtime.adminApi
@@ -129,15 +129,15 @@ function createNodeApi(nodeId) {
   red.server = adminApi.server
 
   // todo remove the following line
-  red['_'] = function() {}
+  red._ = function() {}
   return red
 }
 
 module.exports = {
   init,
   load,
-  registerType,
-  getType: function (type) { return nodeConstructors[type] },
+  // registerType,
+  getType: function (type) { return nodeConstructorsMap[type] },
   getNodeList: function() { return nodeList },
   getAllNodeConfigs: function() { return allNodeConfigs },
 }
