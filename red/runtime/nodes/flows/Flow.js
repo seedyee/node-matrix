@@ -39,30 +39,16 @@ function Flow(global,flow) {
     }
   }
 
-  this.stop = function(stopList) {
-    return when.promise(function(resolve) {
-      var i
-      if (!stopList) {
-        stopList = Object.keys(activeNodes)
+  this.stop = function() {
+    let stopList = []
+    stopList = Object.keys(activeNodes)
+    console.log(stopList)
+    stopList.forEach(id => {
+      const node = activeNodes[id]
+      if (node) {
+        delete activeNodes[id]
       }
-      var promises = []
-      for (i=0; i<stopList.length; i++) {
-        var node = activeNodes[stopList[i]]
-        if (node) {
-          delete activeNodes[stopList[i]]
-          try {
-            var p = node.close()
-            if (p) {
-              promises.push(p)
-            }
-          } catch(err) {
-            node.error(err)
-          }
-        }
-      }
-      when.settle(promises).then(function() {
-        resolve()
-      })
+      node.close()
     })
   }
 
