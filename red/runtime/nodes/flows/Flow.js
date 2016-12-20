@@ -25,54 +25,16 @@ function Flow(global,flow) {
     while (configNodes.length > 0) {
       id = configNodes.shift()
       node = flow.configs[id]
-      if (!activeNodes[id]) {
-        var readyToCreate = true
-        // This node doesn't exist.
-        // Check it doesn't reference another non-existent config node
-        for (var prop in node) {
-          if (node.hasOwnProperty(prop) && prop !== 'id' && prop !== 'wires' && prop !== '_users' && flow.configs[node[prop]]) {
-            if (!activeNodes[node[prop]]) {
-              // References a non-existent config node
-              // Add it to the back of the list to try again later
-              configNodes.push(id)
-              configNodeAttempts[id] = (configNodeAttempts[id]||0)+1
-              if (configNodeAttempts[id] === 100) {
-                throw new Error("Circular config node dependency detected: "+id)
-              }
-              readyToCreate = false
-              break
-            }
-          }
-        }
-        if (readyToCreate) {
-          newNode = createNode(node.type,node)
-          if (newNode) {
-            activeNodes[id] = newNode
-          }
-        }
+      newNode = createNode(node.type,node)
+      if (newNode) {
+        activeNodes[id] = newNode
       }
     }
-
     for (id in flow.nodes) {
       node = flow.nodes[id]
-      if (!activeNodes[id]) {
-        newNode = createNode(node.type,node)
-        if (newNode) {
-          activeNodes[id] = newNode
-        }
-      }
-    }
-
-    for (id in activeNodes) {
-      if (activeNodes.hasOwnProperty(id)) {
-        node = activeNodes[id]
-        if (node.type === "catch") {
-          catchNodeMap[node.z] = catchNodeMap[node.z] || []
-          catchNodeMap[node.z].push(node)
-        } else if (node.type === "status") {
-          statusNodeMap[node.z] = statusNodeMap[node.z] || []
-          statusNodeMap[node.z].push(node)
-        }
+      newNode = createNode(node.type,node)
+      if (newNode) {
+        activeNodes[id] = newNode
       }
     }
   }
@@ -184,7 +146,7 @@ function createNode(type,config) {
 }
 
 module.exports = {
-  create: function(global,conf) {
-    return new Flow(global,conf)
+  create: function(global, conf) {
+    return new Flow(global, conf)
   }
 }
