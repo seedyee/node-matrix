@@ -9,22 +9,18 @@ const nodes = require('./nodes')
 const flows = require('./flows')
 const library = require('./library')
 const locales = require('./locales')
-const comms = require('./comms')
 const settings = require('../../settings')
 
 let adminApp
 let nodeApp
-let server
 
 const errorHandler = function(err, req, res, next) {
   if (err) console.log(err)
   res.status(400).json({error:'unexpected_error', message:err.toString()})
 }
 
-function init(_server, _runtime) {
-  server = _server
+function init(_runtime) {
   nodeApp = express()
-  comms.init(server)
   adminApp = express()
   const limit = settings.apiMaxLength
   adminApp.use(bodyParser.json({ limit }))
@@ -58,19 +54,8 @@ function init(_server, _runtime) {
   adminApp.use(errorHandler)
 }
 
-function start() {
-  comms.start()
-}
-
-function stop() {
-  comms.stop()
-  return when.resolve()
-}
-
 module.exports = {
   init: init,
-  start: start,
-  stop: stop,
   library: {
     register: library.register
   },
@@ -78,10 +63,6 @@ module.exports = {
     //for backword compatibility
     needsPermission: () => (req, res, next) => { next() },
   },
-  comms: {
-    publish: comms.publish
-  },
   get adminApp() { return adminApp },
   get nodeApp() { return nodeApp },
-  get server() { return server },
 }

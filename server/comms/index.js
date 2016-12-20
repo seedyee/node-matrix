@@ -1,5 +1,4 @@
 const ws = require('ws')
-var server
 const events = require('../events')
 const settings = require('../../settings')
 var wsServer
@@ -9,6 +8,7 @@ var retained = {}
 var heartbeatTimer
 var lastSentTime
 
+var server
 function handleStatus(event) {
   publish('status/'+event.id,event.status,true)
 }
@@ -124,9 +124,9 @@ function removeActiveConnection(ws) {
 }
 
 module.exports = {
-  init:init,
-  start:start,
-  stop:stop,
-  publish:publish,
+  init,
+  start,
+  stop,
+  publish,
 }
 

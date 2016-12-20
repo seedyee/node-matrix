@@ -3,38 +3,16 @@ const express = require('express')
 const path = require('path')
 
 const runtime = require('./runtime')
-const api = require('./api')
-
 const settings = require('../settings')
+
 const listenPath = `${settings.https ? 'https' : 'http'}://${settings.uiHost}:${settings.uiPort}${settings.httpEditorRoot}`
 
 const app = express()
 const server = http.createServer(app)
-
-function start() {
-  return runtime.start().then(function() {
-    return api.start()
-  })
-}
-
-function stop() {
-  return runtime.stop().then(function() {
-    return api.stop()
-  })
-}
-
 server.setMaxListeners(0)
-runtime.init()
-api.init(server, runtime)
+runtime.init(server, app)
 
-app.use(settings.httpEditorRoot, api.adminApp)
-app.use(settings.httpNodeRoot, api.nodeApp)
-
-if (settings.httpStatic) {
-  app.use('/', express.static(settings.httpStatic))
-}
-
-start().then(function() {
+runtime.start().then(function() {
   server.on('error', function(err) {
     if (err.errno === 'EADDRINUSE') {
       console.log(`[error] server unable to listen ${listenPath}`)
@@ -58,9 +36,8 @@ process.on('uncaughtException', function(err) {
 })
 
 process.on('SIGINT', function () {
-  stop()
-  // TODO: need to allow nodes to close asynchronously before terminating the
-  // process - ie, promises
-  process.exit()
+  runtime.stop().then(function() {
+    process.exit()
+  })
 })
 

@@ -113,18 +113,18 @@ function createNodeApi(nodeId) {
     events: runtime.events,
     util: runtime.util,
     version: runtime.version,
+    comms: runtime.comms,
+    server: runtime.server,
   }
   red.nodes.registerType = function(type, constructor, opts) {
     // node.id --> node-api/lower-case, type --> lower-case, constructor: func
     registerType(nodeId, type, constructor)
   }
   const adminApi = runtime.adminApi
-  red.comms = adminApi.comms
   red.library = adminApi.library
   red.auth = adminApi.auth
   red.httpAdmin = adminApi.adminApp
   red.httpNode = adminApi.nodeApp
-  red.server = adminApi.server
 
   // todo remove the following line
   red._ = function() {}
