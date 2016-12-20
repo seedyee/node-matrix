@@ -9,7 +9,6 @@ const util = require('./util')
 
 function init() {
   nodes.init(runtime)
-  log.init()
 }
 
 function start() {
