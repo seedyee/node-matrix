@@ -16,55 +16,29 @@ module.exports = {
         flow.flows[n.id].nodes = {}
       }
     })
-    var linkWires = {}
-    var linkOutNodes = []
     config.forEach(function(n) {
       if (n.type !== 'tab') {
-        var container = null
-        if (flow.flows[n.z]) {
-          container = flow.flows[n.z]
-        }
-        if (n.hasOwnProperty('x') && n.hasOwnProperty('y')) {
-          if (container) {
-            container.nodes[n.id] = n
-          }
+        if (n.z && n.x && n.y) {
+          flow.flows[n.z].nodes[n.id] = n
         } else {
-          if (container) {
-            container.configs[n.id] = n
-          } else {
-            flow.configs[n.id] = n
-            flow.configs[n.id]._users = []
-          }
-        }
-        if (n.type === 'link in' && n.links) {
-          // Ensure wires are present in corresponding link out nodes
-          n.links.forEach(function(id) {
-            linkWires[id] = linkWires[id]||{}
-            linkWires[id][n.id] = true
-          })
-        } else if (n.type === 'link out' && n.links) {
-          linkWires[n.id] = linkWires[n.id]||{}
-          n.links.forEach(function(id) {
-            linkWires[n.id][id] = true
-          })
-          linkOutNodes.push(n)
+          // websocket-linstener node don't have x, y, z property
+          // { id: '18e5343.4be2acc',
+          //   type: 'websocket-listener',
+          //   path: '/public/receive',
+          //   wholemsg: 'false'
+          // },
+          // { id: '17426626.71220a',
+          //   type: 'websocket-listener',
+          //   path: '/public/publish',
+          //   wholemsg: 'false',
+          // },
+          flow.configs[n.id] = n
         }
       }
-    })
-    linkOutNodes.forEach(function(n) {
-      var links = linkWires[n.id]
-      var targets = Object.keys(links)
-      n.wires = [targets]
     })
     var addedTabs = {}
     config.forEach(function(n) {
       if (n.type !== 'tab') {
-        for (var prop in n) {
-          if (n.hasOwnProperty(prop) && prop !== 'id' && prop !== 'wires' && prop !== 'type' && prop !== '_users' && flow.configs.hasOwnProperty(n[prop])) {
-            // This property references a global config node
-            flow.configs[n[prop]]._users.push(n.id)
-          }
-        }
         if (n.z) {
           if (!flow.flows[n.z]) {
             flow.flows[n.z] = {type:'tab', id: n.z}
