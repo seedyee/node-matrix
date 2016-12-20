@@ -42,7 +42,6 @@ function Flow(global,flow) {
   this.stop = function() {
     let stopList = []
     stopList = Object.keys(activeNodes)
-    console.log(stopList)
     stopList.forEach(id => {
       const node = activeNodes[id]
       if (node) {

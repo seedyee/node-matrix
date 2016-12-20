@@ -1,6 +1,6 @@
 const path = require('path')
 
-const { getVersion } = require('./red/utils')
+const { getVersion } = require('./server/utils')
 
 const uiPort = process.env.UI_PORT || 1880
 const uiHost = process.env.UI_HOST || '127.0.0.1'
@@ -73,17 +73,6 @@ module.exports = {
   // If you installed the optional node-red-dashboard you can set it's path
   // relative to httpEditorRoot
   //ui: { path: "ui" },
-
-  // The following property can be used to enable HTTPS
-  // See http://nodejs.org/api/https.html#https_https_createserver_options_requestlistener
-  // for details on its contents.
-  // See the comment at the top of this file on how to load the `fs` module used by
-  // this setting.
-  //
-  //https: {
-  //    key: fs.readFileSync('privatekey.pem'),
-  //    cert: fs.readFileSync('certificate.pem')
-  //},
 
   // The following property can be used to configure cross-origin resource sharing
   // in the HTTP nodes.
