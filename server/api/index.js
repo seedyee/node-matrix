@@ -27,9 +27,7 @@ function init(_server, _runtime) {
   comms.init(server)
   adminApp = express()
   flows.init(_runtime)
-  library.init(adminApp, _runtime)
   nodes.init(_runtime)
-
   ui.init()
 
   const editorApp = express()
@@ -68,8 +66,7 @@ function init(_server, _runtime) {
 
   },errorHandler)
 
-  // Error Handler
-  //adminApp.use(errorHandler)
+  adminApp.use(errorHandler)
 }
 
 function start() {
@@ -89,7 +86,7 @@ module.exports = {
     register: library.register
   },
   auth: {
-    // backword compatible
+    //for backword compatibility
     needsPermission: () => (req, res, next) => { next() },
   },
   comms: {
