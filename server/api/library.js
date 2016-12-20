@@ -26,12 +26,10 @@ function createLibrary(type) {
     })
 
     redApp.post(new RegExp('/library/'+type+'\/(.*)'), function(req,res) {
-      var path = req.params[0]
-      var meta = req.body
-      var text = meta.text
-      delete meta.text
+      const path = req.params[0]
+      const libContenct = req.body.text
 
-      storage.saveLibraryEntry(type,path,meta,text).then(function() {
+      storage.saveLibraryEntry(path, libContenct).then(function() {
         res.status(204).end()
       }).otherwise(function(err) {
         if (err.code === 'forbidden') {
@@ -60,9 +58,9 @@ module.exports = {
     res.json(data)
   },
   post: function(req,res) {
-    var flow = JSON.stringify(req.body)
+    var libContenct = JSON.stringify(req.body)
     // type, path, meta, data
-    storage.saveLibraryEntry('flows', req.params[0], {} ,flow).then(function() {
+    storage.saveLibraryEntry(req.params[0], libContenct).then(function() {
       res.status(204).end()
     }).otherwise(function(err) {
       if (err.code === 'forbidden') {

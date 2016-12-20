@@ -4,7 +4,6 @@ const { getVersion } = require('./server/utils')
 
 const uiPort = process.env.UI_PORT || 1880
 const uiHost = process.env.UI_HOST || '127.0.0.1'
-// const userDir = path.resolve(process.env.USER_DIR || path.join(process.env.HOME, './.node-red'))
 const dataDir = path.resolve(path.join(__dirname, './data'))
 const flowsFile = path.join(dataDir, 'flows.json')
 const version = getVersion()
@@ -45,11 +44,8 @@ module.exports = {
   // The maximum length, in characters, of any message sent to the debug sidebar tab
   debugMaxLength: 1000,
 
-  // To enabled pretty-printing of the flow within the flow file, set the following
-  //  property to true:
-  //flowFilePretty: true,
-
   flowsFile,
+
   // When httpAdminRoot is used to move the UI to a different root path, the
   // following property can be used to identify a directory of static content
   // that should be served at http://localhost:1880/.
@@ -81,23 +77,6 @@ module.exports = {
   //httpNodeCors: {
   //    origin: '*',
   //    methods: 'GET,PUT,POST,DELETE'
-  //},
-
-  // If you need to set an http proxy please set an environment variable
-  // called http_proxy (or HTTP_PROXY) outside of Node-RED in the operating system.
-  // For example - http_proxy=http://myproxy.com:8080
-  // (Setting it here will have no effect)
-  // You may also specify no_proxy (or NO_PROXY) to supply a comma separated
-  // list of domains to not proxy, eg - no_proxy=.acme.co,.acme.co.uk
-
-  // The following property can be used to add a custom middleware function
-  // in front of all http in nodes. This allows custom authentication to be
-  // applied to all http in nodes, or any other sort of common request processing.
-  //httpNodeMiddleware: function(req,res,next) {
-  //    // Handle/reject the request, or pass it on to the http in node by calling next();
-  //    // Optionally skip our rawBodyParser by setting this to true;
-  //    //req.skipRawBodyParser = true;
-  //    next();
   //},
 
   // Anything in this hash is globally available to all functions.

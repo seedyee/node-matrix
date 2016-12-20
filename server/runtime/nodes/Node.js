@@ -1,11 +1,10 @@
-var util = require('util')
-var EventEmitter = require('events').EventEmitter
-var when = require('when')
-
-var redUtil = require('../util')
-var Log = require('../log')
-var context = require('./context')
-var flows = require('./flows')
+const util = require('util')
+const EventEmitter = require('events').EventEmitter
+const when = require('when')
+const redUtil = require('../util')
+const Log = require('../log')
+const context = require('./context')
+const flows = require('./flows')
 
 function noop() {}
 function Node(nodeConfig) {
@@ -46,7 +45,6 @@ Node.prototype.updateWires = function(wires = []) {
       this._wire = this.wires[0][0]
     }
   }
-
 }
 
 Node.prototype.context = function() {
@@ -93,7 +91,6 @@ Node.prototype.close = function() {
     if (this._context) {
       context.delete(this._alias||this.id,this.z)
     }
-    return
   }
 }
 
