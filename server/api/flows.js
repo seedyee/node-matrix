@@ -1,14 +1,12 @@
-let redNodes
+const router = require('express').Router()
 
-module.exports = {
-  init: function(runtime) {
-    redNodes = runtime.nodes
-  },
+module.exports = function({ redNodes }) {
 
-  get: function(req, res) {
+  router.get('/', function(req, res) {
     res.json(redNodes.getFlows())
-  },
-  post: function(req, res) {
+  })
+
+  router.post('/', function(req, res) {
     const flows = req.body
     redNodes.setFlows(flows.flows).then(function(flowId) {
       res.json({ rev: flowId })
@@ -16,5 +14,7 @@ module.exports = {
       log.warn(err.stack)
       res.status(500).json({error: 'unexpected_error', message: err.message})
     })
-  }
+  })
+
+  return router
 }

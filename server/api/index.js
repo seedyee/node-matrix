@@ -26,7 +26,6 @@ function init(_server, _runtime) {
   nodeApp = express()
   comms.init(server)
   adminApp = express()
-  flows.init(_runtime)
   nodes.init(_runtime)
   ui.init()
 
@@ -46,8 +45,7 @@ function init(_server, _runtime) {
   }
 
   // Flows
-  adminApp.get('/flows', flows.get, errorHandler)
-  adminApp.post('/flows', flows.post,errorHandler)
+  adminApp.use('/flows', flows({ redNodes: _runtime.nodes }))
 
   // Nodes
   adminApp.get('/nodes', nodes.getAll,errorHandler)
@@ -55,9 +53,7 @@ function init(_server, _runtime) {
   adminApp.get(/locales\/(.+)\/?$/, locales, errorHandler)
 
   // Library
-  adminApp.post(new RegExp('/library/flows\/(.*)'), library.post,errorHandler)
-  adminApp.get('/library/flows', library.getAll,errorHandler)
-  adminApp.get(new RegExp('/library/flows\/(.*)'), library.get,errorHandler)
+  adminApp.use('/Library', library.router)
 
   // Settings
   adminApp.get('/settings', (req, res) => {
