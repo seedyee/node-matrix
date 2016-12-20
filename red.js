@@ -3,7 +3,7 @@ const https = require('https')
 const express = require('express')
 const path = require('path')
 
-const Matrix = require('./red/red.js')
+const matrix = require('./red/red.js')
 
 const settings = require('./settings')
 
@@ -17,10 +17,11 @@ if (settings.https) {
   server = http.createServer(app)
 }
 server.setMaxListeners(0)
-const matrix = new Matrix(server)
 
-app.use(settings.httpEditorRoot, matrix.adminApp)
-app.use(settings.httpNodeRoot, matrix.nodeApp)
+matrix.init(server)
+
+app.use(settings.httpEditorRoot, matrix.api.adminApp)
+app.use(settings.httpNodeRoot, matrix.api.nodeApp)
 
 if (settings.httpStatic) {
   app.use('/', express.static(settings.httpStatic))
@@ -29,24 +30,23 @@ if (settings.httpStatic) {
 matrix.start().then(function() {
   server.on('error', function(err) {
     if (err.errno === 'EADDRINUSE') {
-      matrix.log.error(`server unable to listen ${listenPath}`)
+      console.log(`[error] server unable to listen ${listenPath}`)
     } else {
-      matrix.log.error('server uncaught exception')
-      matrix.log.error(err.stack || err)
+      console.log('[error] server uncaught exception')
+      console.log(err)
     }
     process.exit(1)
   })
   server.listen(settings.uiPort, settings.uiHost, function() {
-    matrix.log.info(`server now running on: ${listenPath}`)
+    console.log(`[info] server now running on: ${listenPath}`)
   })
 }).catch(function(err) {
-  matrix.log.error('server failed to start')
-  matrix.log.error(err.stack || err)
+  console.log(err)
 })
 
 process.on('uncaughtException', function(err) {
-  console.log('[matrix] Uncaught Exception:')
-  console.log(err.stack || err)
+  console.log('[error] Uncaught Exception:')
+  console.log(err)
   process.exit(1)
 })
 
