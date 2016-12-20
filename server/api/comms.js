@@ -1,6 +1,6 @@
 const ws = require('ws')
 var server
-const events = require('../runtime/events')
+const events = require('../events')
 const settings = require('../../settings')
 var wsServer
 var pendingConnections = []

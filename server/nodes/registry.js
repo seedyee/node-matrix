@@ -3,7 +3,7 @@ const path = require('path')
 const forOwn = require('lodash/forOwn')
 const util = require('util')
 
-const nodesPathMap = require('../../nodesLoader')
+const nodesPathMap = require('../nodesLoader')
 
 let Node
 let runtime

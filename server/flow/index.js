@@ -2,10 +2,10 @@ const clone = require('clone')
 const when = require('when')
 
 const Flow = require('./Flow')
-const context = require('../context')
+const context = require('../nodes/context')
 const flowUtil = require('./util')
-const log = require('../../log')
-const events = require('../../events')
+const log = require('../log')
+const events = require('../events')
 
 // init --> loadFlows --> startFlows
 // init --> load --> setFlows --> startFlows

@@ -1,10 +1,10 @@
 const util = require('util')
 const EventEmitter = require('events').EventEmitter
 const when = require('when')
-const redUtil = require('../util')
+const redUtil = require('../utils/redUtils')
 const Log = require('../log')
 const context = require('./context')
-const flows = require('./flows')
+const flows = require('../flow')
 
 function noop() {}
 function Node(nodeConfig) {

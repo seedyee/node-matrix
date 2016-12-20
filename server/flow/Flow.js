@@ -1,8 +1,8 @@
 const when = require('when')
 const clone = require('clone')
-const typeRegistry = require('../registry')
-const Log = require('../../log')
-const redUtil = require('../../util')
+const typeRegistry = require('../nodes/registry')
+const Log = require('../log')
+const redUtil = require('../utils/redUtils')
 const flowUtil = require('./util')
 
 function Flow(global,flow) {

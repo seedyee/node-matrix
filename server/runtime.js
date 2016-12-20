@@ -2,10 +2,9 @@ const nodes = require('./nodes')
 const storage = require('./storage')
 const log = require('./log')
 const events = require('./events')
-const settings = require('../../settings')
-const api = require('../api')
-const util = require('./util')
-
+const settings = require('../settings')
+const api = require('./api')
+const util = require('./utils/redUtils')
 
 function init() {
   nodes.init(runtime)
@@ -13,7 +12,7 @@ function init() {
 
 function start() {
   console.log('\n==================== Welcome ============================\n')
-  log.info(`Node-RED version v${settings.version}`)
+  log.info(`Node-Matrix version v${settings.version}`)
   log.info(`Node.js version ${process.version}`)
   nodes.load()
   return nodes.loadFlows().then(nodes.startFlows)

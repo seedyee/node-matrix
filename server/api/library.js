@@ -40,7 +40,7 @@
 //   }
 // }
 
-storage = require('../runtime/storage')
+storage = require('../storage')
 module.exports = {
   // register: createLibrary,
   // fake register api

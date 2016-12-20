@@ -1,6 +1,6 @@
 const clone = require('clone')
 const when = require('when')
-const util = require('../util')
+const util = require('../utils/redUtils')
 
 function createContext(id, seed) {
   var data = seed || {}

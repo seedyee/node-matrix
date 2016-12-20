@@ -2,7 +2,7 @@ const fs = require('fs-extra')
 const when = require('when')
 const nodeFn = require('when/node/function')
 const fspath = require('path')
-const settings = require('../../../settings')
+const settings = require('../../settings')
 const log = require('../log')
 
 const libDir = fspath.join(settings.dataDir, 'lib')

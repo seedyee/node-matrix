@@ -1,5 +1,5 @@
 const registry = require('./registry')
-const flows = require('./flows')
+const flows = require('../flow')
 const context = require('./context')
 const { createNode } = require('./Node')
 

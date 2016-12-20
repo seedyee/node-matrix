@@ -1,5 +1,5 @@
 const clone = require('clone')
-const redUtil = require('../../util')
+const redUtil = require('../utils/redUtils')
 
 module.exports = {
   parseConfig: function(config) {
