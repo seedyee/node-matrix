@@ -245,7 +245,7 @@ module.exports = function(grunt) {
         nodemon: {
             /* uses .nodemonignore */
             dev: {
-                script: 'red.js',
+                script: 'server/index.js',
                 options: {
                     args: nodemonArgs,
                     ext: 'js,html,json',

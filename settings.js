@@ -16,10 +16,6 @@ module.exports = {
   uiPort,
   uiHost,
   dataDir,
-
-  // Node-RED scans the `nodes` directory in the install directory to find nodes.
-  // The following property can be used to specify an additional directory to scan.
-  //nodesDir: '/home/nol/.node-red/nodes',
   coreNodesDir,
   coreDotsDir,
   version,
@@ -46,20 +42,8 @@ module.exports = {
 
   flowsFile,
 
-  // When httpAdminRoot is used to move the UI to a different root path, the
-  // following property can be used to identify a directory of static content
-  // that should be served at http://localhost:1880/.
-  //httpStatic: '/home/nol/node-red-static/',
-
-  // By default, the Node-RED UI is available at http://localhost:1880/
-  // The following property can be used to specifiy a different root path.
-  // If set to false, this is disabled.
   httpEditorRoot: '/',
 
-  // Some nodes, such as HTTP In, can be used to listen for incoming http requests.
-  // By default, these are served relative to '/'. The following property
-  // can be used to specifiy a different root path. If set to false, this is
-  // disabled.
   httpNodeRoot: '/',
 
   // The maximum size of HTTP request that will be accepted by the runtime api.
