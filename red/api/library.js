@@ -1,6 +1,5 @@
 let redApp = null
 let storage
-let log
 
 function createLibrary(type) {
   if (redApp) {
@@ -8,7 +7,6 @@ function createLibrary(type) {
       console.log('================== redApp.get')
       var path = req.params[1]||''
       storage.getLibraryEntry(path).then(function(result) {
-        log.audit({event: 'library.get',type:type},req)
         if (typeof result === 'string') {
           res.writeHead(200, {'Content-Type': 'text/plain'})
           res.write(result)
@@ -19,12 +17,10 @@ function createLibrary(type) {
       }).otherwise(function(err) {
         if (err) {
           if (err.code === 'forbidden') {
-            log.audit({event: 'library.get',type:type,error:'forbidden'},req)
             res.status(403).end()
             return
           }
         }
-        log.audit({event: 'library.get',type:type,error:'not_found'},req)
         res.status(404).end()
       })
     })
@@ -36,15 +32,12 @@ function createLibrary(type) {
       delete meta.text
 
       storage.saveLibraryEntry(type,path,meta,text).then(function() {
-        log.audit({event: 'library.set',type:type},req)
         res.status(204).end()
       }).otherwise(function(err) {
         if (err.code === 'forbidden') {
-          log.audit({event: 'library.set',type:type,error:'forbidden'},req)
           res.status(403).end()
           return
         }
-        log.audit({event: 'library.set',type:type,error:'unexpected_error',message:err.toString()},req)
         res.status(500).json({error:'unexpected_error', message:err.toString()})
       })
     })
@@ -54,7 +47,6 @@ function createLibrary(type) {
 module.exports = {
   init: function(app,runtime) {
     redApp = app
-    log = runtime.log
     storage = runtime.storage
   },
   register: createLibrary,
@@ -71,15 +63,12 @@ module.exports = {
     var flow = JSON.stringify(req.body)
     // type, path, meta, data
     storage.saveLibraryEntry('flows', req.params[0], {} ,flow).then(function() {
-      log.audit({event: 'library.set',type:'flow',path:req.params[0]},req)
       res.status(204).end()
     }).otherwise(function(err) {
       if (err.code === 'forbidden') {
-        log.audit({event: 'library.set',type:'flow',path:req.params[0],error:'forbidden'},req)
         res.status(403).end()
         return
       }
-      log.audit({event: 'library.set',type:'flow',path:req.params[0],error:'unexpected_error',message:err.toString()},req)
       res.status(500).send({error:'unexpected_error', message:err.toString()})
     })
   }

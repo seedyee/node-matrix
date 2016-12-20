@@ -1,6 +1,6 @@
 const ws = require('ws')
-var log
 var server
+const events = require('../runtime/events')
 const settings = require('../../settings')
 var wsServer
 var pendingConnections = []
@@ -13,13 +13,11 @@ function handleStatus(event) {
   publish('status/'+event.id,event.status,true)
 }
 
-function init(_server,runtime) {
+function init(_server) {
   server = _server
-  // settings = runtime.settings
-  log = runtime.log
 
-  runtime.events.removeListener('node-status',handleStatus)
-  runtime.events.on('node-status',handleStatus)
+  events.removeListener('node-status', handleStatus)
+  events.on('node-status', handleStatus)
 }
 
 function start() {
@@ -46,7 +44,7 @@ function start() {
       try {
         msg = JSON.parse(data)
       } catch(err) {
-        log.trace('comms received malformed message : '+err.toString())
+        console.log('comms received malformed message : '+err.toString())
         return
       }
       if (msg.subscribe) {
@@ -54,12 +52,12 @@ function start() {
       }
     })
     ws.on('error', function(err) {
-      log.warn(log._('comms.error',{message:err.toString()}))
+      console.log(err.toString())
     })
   })
 
   wsServer.on('error', function(err) {
-    log.warn(log._('comms.error-server',{message:err.toString()}))
+    console.log(err.toString())
   })
 
   lastSentTime = Date.now()
@@ -103,7 +101,7 @@ function publishTo(ws,topic,data) {
     ws.send(msg)
   } catch(err) {
     removeActiveConnection(ws)
-    log.warn(log._('comms.error-send',{message:err.toString()}))
+    console.log(`comms error send $:err.toString()`)
   }
 }
 

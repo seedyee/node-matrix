@@ -10,32 +10,27 @@ const flows = require('./flows')
 const library = require('./library')
 const locales = require('./locales')
 const comms = require('./comms')
+const settings = require('../../settings')
 
-let settings
-let log
 let adminApp
 let nodeApp
 let server
-let runtime
 
 const errorHandler = function(err, req, res, next) {
-  if (err) log.error(err)
+  if (err) console.log(err)
   res.status(400).json({error:'unexpected_error', message:err.toString()})
 }
 
 function init(_server, _runtime) {
   server = _server
-  runtime = _runtime
-  settings = runtime.settings
-  log = runtime.log
   nodeApp = express()
-  comms.init(server, runtime)
+  comms.init(server)
   adminApp = express()
-  flows.init(runtime)
-  library.init(adminApp, runtime)
-  nodes.init(runtime)
+  flows.init(_runtime)
+  library.init(adminApp, _runtime)
+  nodes.init(_runtime)
 
-  ui.init(runtime)
+  ui.init()
 
   const editorApp = express()
   editorApp.get('/', ui.ensureSlash, ui.editor)

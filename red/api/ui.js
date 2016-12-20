@@ -26,7 +26,7 @@ const templatePath = path.resolve(__dirname + '/../../editor/templates/index.mst
 let editorTemplate
 
 module.exports = {
-  init: function(runtime) {
+  init: function() {
     editorTemplate = fs.readFileSync(templatePath, 'utf8')
     Mustache.parse(editorTemplate)
   },
