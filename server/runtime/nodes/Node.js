@@ -230,18 +230,6 @@ Node.prototype.error = function(logMessage,msg) {
  */
 // fake metric functino
 Node.prototype.metric = function() { return false }
-// Node.prototype.metric = function(eventname, msg, metricValue) {
-//   if (typeof eventname === 'undefined') {
-//     return Log.metric()
-//   }
-//   var metrics = {}
-//   metrics.level = Log.METRIC
-//   metrics.nodeid = this.id
-//   metrics.event = 'node.'+this.type+'.'+eventname
-//   metrics.msgid = msg._msgid
-//   metrics.value = metricValue
-//   Log.log(metrics)
-// }
 
 /**
  * status: { fill:'red|green', shape:'dot|ring', text:'blah' }

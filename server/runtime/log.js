@@ -19,44 +19,40 @@ const levels = {
 const levelNames = invert(levels)
 
 const logHandlers = []
-let metricsEnabled = false
 
-function LogHandler (settings) {
-  this.logLevel = levels[settings.level] || levels.info
-  this.metricsOn = settings.metrics
-  this.auditOn = settings.audit
-
-  metricsEnabled = metricsEnabled || this.metricsOn
-
+function LogHandler () {
+  this.logLevel = levels.info
   this.on('log', function(msg) {
-    if (this.shouldReportMessage(msg.level)) {
-      this.handler(msg)
-    }
+    this.handler(msg)
   })
 }
 
 util.inherits(LogHandler, EventEmitter)
-LogHandler.prototype.handler = function (msg) {
-  if (msg.level == log.METRIC || msg.level == log.AUDIT) {
-    console.log(`${levelNames[msg.level]} : ${JSON.stringify(msg)}`)
-  } else {
-    var message = msg.msg
-    if (typeof message === 'object' && message.toString() === '[object Object]' && message.message) {
-      message = message.message
-    }
-    console.log('['+levelNames[msg.level]+'] '+(msg.type?'['+msg.type+':'+(msg.name||msg.id)+'] ':'')+message)
+
+LogHandler.prototype.handler = function (msgObj) {
+  const { level, type, name, id, msg } = msgObj
+  console.log('['+levelNames[level]+'] '+(type?'['+type+':'+(name||id)+'] ':'')+msg)
+}
+
+function log(msg) {
+  msg.timestamp = Date.now()
+  logHandlers.forEach(function(handler) {
+    handler.emit('log', msg)
+  })
+}
+
+function addHandler(func) {
+  logHandlers.push(func)
+}
+
+function removeHandler(func) {
+  var index = logHandlers.indexOf(func)
+  if (index > -1) {
+    logHandlers.splice(index, 1)
   }
 }
 
-
-LogHandler.prototype.shouldReportMessage = function(msglevel) {
-  return (msglevel == log.METRIC && this.metricsOn) ||
-         (msglevel == log.AUDIT && this.auditOn) ||
-         msglevel <= this.logLevel
-}
-
-
-var log = module.exports = {
+module.exports = {
   OFF:    1,
   FATAL:  10,
   ERROR:  20,
@@ -66,75 +62,26 @@ var log = module.exports = {
   TRACE:  60,
   AUDIT:  98,
   METRIC: 99,
+
+  log,
+  addHandler,
+  removeHandler,
   init: function() {
-    metricsEnabled = false
-    Object.keys(logging).forEach(key => {
-      const config = logging[key]
-      if (key === 'console') {
-        log.addHandler(new LogHandler(config))
-      }
-    })
-  },
-  addHandler: function(func) {
-    logHandlers.push(func)
-  },
-  removeHandler: function(func) {
-    var index = logHandlers.indexOf(func)
-    if (index > -1) {
-      logHandlers.splice(index, 1)
-    }
-  },
-  log: function(msg) {
-    msg.timestamp = Date.now()
-    logHandlers.forEach(function(handler) {
-      handler.emit('log', msg)
-    })
+    addHandler(new LogHandler())
   },
   info: function(msg) {
-    log.log({ level: levels.info, msg })
+    log({ level: levels.info, msg })
   },
   warn: function(msg) {
-    log.log({ level: levels.warn, msg })
+    log({ level: levels.warn, msg })
   },
   error: function(msg) {
-    log.log({ level: levels.error, msg })
+    log({ level: levels.error, msg })
   },
   trace: function(msg) {
-    log.log({ level: levels.trace, msg })
+    log({ level: levels.trace, msg })
   },
   debug: function(msg) {
-    log.log({ level: levels.debug, msg })
+    log({ level: levels.debug, msg })
   },
-  metric: function() {
-    return metricsEnabled
-  },
-  reportMetrics() {
-    if (!metricsEnabled) return
-    var memUsage = process.memoryUsage();
-
-    log.log({
-      level: log.METRIC,
-      event: 'runtime.memory.rss',
-      value: memUsage.rss,
-    });
-    log.log({
-      level: log.METRIC,
-      event: 'runtime.memory.heapTotal',
-      value: memUsage.heapTotal,
-    });
-    log.log({
-      level: log.METRIC,
-      event: 'runtime.memory.heapUsed',
-      value: memUsage.heapUsed,
-    })
-  },
-  audit: function(msg,req) {
-    msg.level = log.AUDIT
-    if (req) {
-      msg.user = req.user
-      msg.path = req.path
-      msg.ip = (req.headers && req.headers['x-forwarded-for']) || (req.connection && req.connection.remoteAddress) || undefined
-    }
-    log.log(msg)
-  }
 }
