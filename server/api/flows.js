@@ -11,7 +11,6 @@ module.exports = function({ redNodes }) {
     redNodes.setFlows(flows.flows).then(function(flowId) {
       res.json({ rev: flowId })
     }).catch(function(err) {
-      log.warn(err.stack)
       res.status(500).json({error: 'unexpected_error', message: err.message})
     })
   })

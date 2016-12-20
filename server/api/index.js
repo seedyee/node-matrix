@@ -26,15 +26,6 @@ function init(_server, _runtime) {
   nodeApp = express()
   comms.init(server)
   adminApp = express()
-  nodes.init(_runtime)
-  ui.init()
-
-  const editorApp = express()
-  editorApp.get('/', ui.ensureSlash, ui.editor)
-  editorApp.get('/icons/:icon', ui.icon)
-  editorApp.use('/', ui.editorResources)
-  adminApp.use(editorApp)
-
   const limit = settings.apiMaxLength
   adminApp.use(bodyParser.json({ limit }))
   adminApp.use(bodyParser.urlencoded({ limit, extended: true }))
@@ -44,13 +35,15 @@ function init(_server, _runtime) {
     adminApp.use(corsHandler)
   }
 
+  adminApp.use('/', ui)
   // Flows
   adminApp.use('/flows', flows({ redNodes: _runtime.nodes }))
 
   // Nodes
-  adminApp.get('/nodes', nodes.getAll,errorHandler)
+  adminApp.use('/nodes', nodes({ redNodes: _runtime.nodes }))
 
-  adminApp.get(/locales\/(.+)\/?$/, locales, errorHandler)
+  // locales
+  adminApp.get(/locales\/(.+)\/?$/, locales)
 
   // Library
   adminApp.use('/Library', library.router)

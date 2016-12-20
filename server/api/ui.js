@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const express = require('express')
+const router = require('express').Router()
 const Mustache = require('mustache')
 
 const themeContext = {
@@ -25,44 +26,42 @@ const defaultIcon = path.resolve(__dirname + '/../../public/icons/arrow-in.png')
 const templatePath = path.resolve(__dirname + '/../../editor/templates/index.mst')
 let editorTemplate
 
-module.exports = {
-  init: function() {
-    editorTemplate = fs.readFileSync(templatePath, 'utf8')
-    Mustache.parse(editorTemplate)
-  },
+editorTemplate = fs.readFileSync(templatePath, 'utf8')
+Mustache.parse(editorTemplate)
 
-  ensureSlash: function(req, res, next) {
-    const parts = req.originalUrl.split('?')
-    if (parts[0].slice(-1) != '/') {
-      parts[0] += '/'
-      const redirect = parts.join('?')
-      res.redirect(301, redirect)
-    } else {
-      next()
-    }
-  },
-  icon: function(req,res) {
-    const iconName = req.params.icon
-    if (iconCache[iconName]) {
-      res.sendFile(iconCache[iconName])
-    } else {
-      for (let p=0; p<icon_paths.length; p++) {
-        var iconPath = path.join(icon_paths[p],iconName)
-        try {
-          fs.statSync(iconPath)
-          res.sendFile(iconPath)
-          iconCache[req.params.icon] = iconPath
-          return
-        } catch(err) {
-          // iconPath doesn't exist
-        }
-      }
-      res.sendFile(defaultIcon)
-    }
-  },
+router.get('/', function(req, res, ensureSlash) {
+  res.send(Mustache.render(editorTemplate, themeContext))
+})
 
-  editor: function(req, res) {
-    res.send(Mustache.render(editorTemplate, themeContext))
-  },
-  editorResources: express.static(__dirname + '/../../public')
+router.get('/icons:icon', function(req, res) {
+  const iconName = req.params.icon
+  if (iconCache[iconName]) {
+    return res.sendFile(iconCache[iconName])
+  }
+  for (let p=0; p<icon_paths.length; p++) {
+    var iconPath = path.join(icon_paths[p],iconName)
+    try {
+      fs.statSync(iconPath)
+      res.sendFile(iconPath)
+      iconCache[req.params.icon] = iconPath
+    } catch(err) {
+     return  res.status(400).json({error: `can't find icon ${iconName}`})
+    }
+  }
+  res.sendFile(defaultIcon)
+})
+
+router.use(express.static(path.join(__dirname, '../../public')))
+
+function ensureSlash(req, res, next) {
+  const parts = req.originalUrl.split('?')
+  if (parts[0].slice(-1) != '/') {
+    parts[0] += '/'
+    const redirect = parts.join('?')
+    res.redirect(301, redirect)
+  } else {
+    next()
+  }
 }
+
+module.exports = router
