@@ -1,49 +1,17 @@
-var clone = require('clone')
-var redUtil = require('../../util')
-var subflowInstanceRE = /^subflow:(.+)$/
-
-var EnvVarPropertyRE = /^\$\((\S+)\)$/
-
-function mapEnvVarProperties(obj,prop) {
-  if (Buffer.isBuffer(obj[prop])) {
-    return
-  } else if (Array.isArray(obj[prop])) {
-    for (var i=0; i<obj[prop].length; i++) {
-      mapEnvVarProperties(obj[prop],i)
-    }
-  } else if (typeof obj[prop] === 'string') {
-    var m
-    if ( (m = EnvVarPropertyRE.exec(obj[prop])) !== null) {
-      if (process.env.hasOwnProperty(m[1])) {
-        obj[prop] = process.env[m[1]]
-      }
-    }
-  } else {
-    for (var p in obj[prop]) {
-      if (obj[prop].hasOwnProperty(p)) {
-        mapEnvVarProperties(obj[prop],p)
-      }
-    }
-  }
-}
+const clone = require('clone')
+const redUtil = require('../../util')
 
 module.exports = {
-
-  mapEnvVarProperties: mapEnvVarProperties,
-
   parseConfig: function(config) {
-    var flow = {}
+    const flow = {}
     flow.allNodes = {}
-    flow.subflows = {}
     flow.configs = {}
     flow.flows = {}
-    flow.missingTypes = []
 
     config.forEach(function(n) {
       flow.allNodes[n.id] = clone(n)
       if (n.type === 'tab') {
         flow.flows[n.id] = n
-        flow.flows[n.id].subflows = {}
         flow.flows[n.id].configs = {}
         flow.flows[n.id].nodes = {}
       }
@@ -55,8 +23,6 @@ module.exports = {
         var container = null
         if (flow.flows[n.z]) {
           container = flow.flows[n.z]
-        } else if (flow.subflows[n.z]) {
-          container = flow.subflows[n.z]
         }
         if (n.hasOwnProperty('x') && n.hasOwnProperty('y')) {
           if (container) {
@@ -90,7 +56,6 @@ module.exports = {
       var targets = Object.keys(links)
       n.wires = [targets]
     })
-
     var addedTabs = {}
     config.forEach(function(n) {
       if (n.type !== 'tab') {
@@ -100,11 +65,9 @@ module.exports = {
             flow.configs[n[prop]]._users.push(n.id)
           }
         }
-        if (n.z && !flow.subflows[n.z]) {
-
+        if (n.z) {
           if (!flow.flows[n.z]) {
-            flow.flows[n.z] = {type:'tab',id:n.z}
-            flow.flows[n.z].subflows = {}
+            flow.flows[n.z] = {type:'tab', id: n.z}
             flow.flows[n.z].configs = {}
             flow.flows[n.z].nodes = {}
             addedTabs[n.z] = flow.flows[n.z]
@@ -121,4 +84,29 @@ module.exports = {
     })
     return flow
   },
+
+  mapEnvVarProperties,
+}
+
+function mapEnvVarProperties(obj,prop) {
+  if (Buffer.isBuffer(obj[prop])) {
+    return
+  } else if (Array.isArray(obj[prop])) {
+    for (var i=0; i<obj[prop].length; i++) {
+      mapEnvVarProperties(obj[prop],i)
+    }
+  } else if (typeof obj[prop] === 'string') {
+    var m
+    if ( (m = /^\$\((\S+)\)$/.exec(obj[prop])) !== null) {
+      if (process.env.hasOwnProperty(m[1])) {
+        obj[prop] = process.env[m[1]]
+      }
+    }
+  } else {
+    for (var p in obj[prop]) {
+      if (obj[prop].hasOwnProperty(p)) {
+        mapEnvVarProperties(obj[prop],p)
+      }
+    }
+  }
 }
