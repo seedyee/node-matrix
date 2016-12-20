@@ -1,14 +1,10 @@
 const storageModule = require('./localfilesystem')
 
-const { init, getSettings, saveSettings, getLibraryEntry, getLibEntry, getAllLibs } = storageModule
+const { init, getSettings, saveSettings, getLibraryEntry, getLibEntry, getAllLibs, getFlows, saveFlows } = storageModule
 const storageModuleInterface = {
   init,
-  getFlows: function() {
-    return storageModule.getFlows().then(flows =>({ flows }))
-  },
-  saveFlows: function(config) {
-    return storageModule.saveFlows(config.flows)
-  },
+  getFlows,
+  saveFlows,
   getSettings,
   saveSettings,
   getLibraryEntry,

@@ -38,15 +38,15 @@ function setFlows(_config, type) {
   var config = null
   var newFlowConfig
 
-  if (type === 'load') {
+  if (_config === null && type === 'load') {
     configSavePromise = loadFlows().then(function(_config) {
-      config = clone(_config.flows)
-      newFlowConfig = flowUtil.parseConfig(clone(config))
+      config = clone(_config)
+      newFlowConfig = flowUtil.parseConfig(_config)
     })
   } else {
     config = clone(_config)
     newFlowConfig = flowUtil.parseConfig(clone(config))
-    configSavePromise = storage.saveFlows({ flows: config})
+    configSavePromise = storage.saveFlows(config)
   }
 
   return configSavePromise
