@@ -136,12 +136,10 @@ var RED = (function() {
     menuOptions.push({id:'menu-item-keyboard-shortcuts',label:RED._('menu.label.keyboardShortcuts'),onselect:RED.keyboard.showHelp})
     RED.menu.init({id:'btn-sidemenu',options: menuOptions})
 
-    RED.user.init()
-
     RED.library.init()
     RED.palette.init()
     RED.sidebar.init()
-    RED.subflow.init()
+    // RED.subflow.init()
     RED.workspaces.init()
     RED.clipboard.init()
     RED.search.init()

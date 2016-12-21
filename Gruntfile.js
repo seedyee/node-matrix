@@ -25,7 +25,6 @@ module.exports = function(grunt) {
           "editor/js/events.js",
           "editor/js/i18n.js",
           "editor/js/settings.js",
-          "editor/js/user.js",
           "editor/js/comms.js",
           "editor/js/text/bidi.js",
           "editor/js/text/format.js",
