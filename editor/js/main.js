@@ -126,10 +126,6 @@ var RED = (function() {
       {id:'menu-item-workspace-edit',label:RED._('menu.label.rename'),onselect:RED.workspaces.edit},
       {id:'menu-item-workspace-delete',label:RED._('menu.label.delete'),onselect:RED.workspaces.remove}
     ]})
-    menuOptions.push({id:'menu-item-subflow',label:RED._('menu.label.subflows'), options: [
-      {id:'menu-item-subflow-create',label:RED._('menu.label.createSubflow'),onselect:RED.subflow.createSubflow},
-      {id:'menu-item-subflow-convert',label:RED._('menu.label.selectionToSubflow'),disabled:true,onselect:RED.subflow.convertToSubflow},
-    ]})
     menuOptions.push(null)
     if (RED.settings.theme('palette.editable') !== false) {
       RED.palette.editor.init()
