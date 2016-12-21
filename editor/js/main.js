@@ -65,18 +65,6 @@ var RED = (function() {
     })
   }
 
-  function showAbout() {
-    $.get('red/about', function(data) {
-      console.log(data)
-      var aboutHeader = '<div style="text-align:center">'+
-        '<img width="50px" src="red/images/node-red-icon.svg" />'+
-        '</div>'
-
-      RED.sidebar.info.set(aboutHeader+marked(data))
-      RED.sidebar.info.show()
-    })
-  }
-
   var statusEnabled = false
   function toggleStatus(state) {
     statusEnabled = state
@@ -86,13 +74,40 @@ var RED = (function() {
   function loadEditor() {
 
     var menuOptions = []
-    menuOptions.push({id:'menu-item-view-menu',label:RED._('menu.label.view.view'),options:[
-      {id:'menu-item-view-show-grid',label:RED._('menu.label.view.showGrid'),toggle:true,onselect:RED.view.toggleShowGrid},
-      {id:'menu-item-view-snap-grid',label:RED._('menu.label.view.snapGrid'),toggle:true,onselect:RED.view.toggleSnapGrid},
-      {id:'menu-item-status',label:RED._('menu.label.displayStatus'),toggle:true,onselect:toggleStatus, selected: true},
-      null,
-      {id:'menu-item-sidebar',label:RED._('menu.label.sidebar.show'),toggle:true,onselect:RED.sidebar.toggleSidebar, selected: true}
-    ]})
+    menuOptions.push(
+      {
+        id:'menu-item-view-menu',
+        label:RED._('menu.label.view.view'),
+        options:[
+          {
+            id:'menu-item-view-show-grid',
+            label:RED._('menu.label.view.showGrid'),
+            toggle:true,
+            onselect:RED.view.toggleShowGrid
+          },
+          {
+            id:'menu-item-view-snap-grid',
+            label:RED._('menu.label.view.snapGrid'),
+            toggle:true,
+            onselect:RED.view.toggleSnapGrid
+          },
+          {
+            id:'menu-item-status',
+            label:RED._('menu.label.displayStatus'),
+            toggle:true,
+            onselect:toggleStatus,
+            selected: true
+          },
+          null,
+          {
+            id:'menu-item-sidebar',
+            label:RED._('menu.label.sidebar.show'),
+            toggle:true,
+            onselect:RED.sidebar.toggleSidebar,
+            selected: true
+          }
+      ]
+      })
     menuOptions.push(null)
     menuOptions.push({id:'menu-item-import',label:RED._('menu.label.import'),options:[
       {id:'menu-item-import-clipboard',label:RED._('menu.label.clipboard'),onselect:RED.clipboard.import},
@@ -127,7 +142,6 @@ var RED = (function() {
                       label: RED.settings.theme('menu.menu-item-help.label','Node-RED website'),
                       href: RED.settings.theme('menu.menu-item-help.url','http://nodered.org/docs')
                      })
-    menuOptions.push({id:'menu-item-node-red-version', label:'v'+RED.settings.version, onselect: showAbout })
 
     RED.menu.init({id:'btn-sidemenu',options: menuOptions})
 
