@@ -124,11 +124,7 @@ RED.workspaces = (function() {
         RED.sidebar.config.refresh();
       },
       ondblclick: function(tab) {
-        if (tab.type != "subflow") {
-          showRenameWorkspaceDialog(tab.id);
-        } else {
-          RED.editor.editSubflow(RED.nodes.subflow(tab.id));
-        }
+        showRenameWorkspaceDialog(tab.id);
       },
       onadd: function(tab) {
         RED.menu.setDisabled("menu-item-workspace-delete",workspace_tabs.count() == 1);
@@ -197,26 +193,15 @@ RED.workspaces = (function() {
       return activeWorkspace
     },
     show: function(id) {
-      if (!workspace_tabs.contains(id)) {
-        var sf = RED.nodes.subflow(id);
-        if (sf) {
-          addWorkspace({type:"subflow",id:id,icon:"red/images/subflow_tab.png",label:sf.name, closeable: true});
-        } else {
-          return;
-        }
+      if (workspace_tabs.contains(id)) {
+        workspace_tabs.activateTab(id);
       }
-      workspace_tabs.activateTab(id);
     },
     refresh: function() {
       RED.nodes.eachWorkspace(function(ws) {
         workspace_tabs.renameTab(ws.id,ws.label);
 
       })
-      RED.nodes.eachSubflow(function(sf) {
-        if (workspace_tabs.contains(sf.id)) {
-          workspace_tabs.renameTab(sf.id,sf.name);
-        }
-      });
       RED.sidebar.config.refresh();
     },
     resize: function() {

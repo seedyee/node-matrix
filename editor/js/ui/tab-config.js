@@ -18,7 +18,6 @@ RED.sidebar.config = (function() {
 
   var globalCategories = $("<div>").appendTo(content);
   var flowCategories = $("<div>").appendTo(content);
-  var subflowCategories = $("<div>").appendTo(content);
 
   var showUnusedOnly = false;
 
@@ -180,10 +179,6 @@ RED.sidebar.config = (function() {
     RED.nodes.eachWorkspace(function(ws) {
       validList[ws.id.replace(/\./g,"-")] = true;
       getOrCreateCategory(ws.id,flowCategories,ws.label);
-    })
-    RED.nodes.eachSubflow(function(sf) {
-      validList[sf.id.replace(/\./g,"-")] = true;
-      getOrCreateCategory(sf.id,subflowCategories,sf.name);
     })
     $(".workspace-config-node-category").each(function() {
       var id = $(this).attr('id').substring("workspace-config-node-category-".length);

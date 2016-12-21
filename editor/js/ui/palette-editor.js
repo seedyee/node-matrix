@@ -724,16 +724,12 @@ RED.palette.editor = (function() {
       refreshNodeModule(ns.module);
     });
     RED.events.on('registry:node-type-added', function(nodeType) {
-      if (!/^subflow:/.test(nodeType)) {
-        var ns = RED.nodes.registry.getNodeSetForType(nodeType);
-        refreshNodeModule(ns.module);
-      }
+      var ns = RED.nodes.registry.getNodeSetForType(nodeType);
+      refreshNodeModule(ns.module);
     });
     RED.events.on('registry:node-type-removed', function(nodeType) {
-      if (!/^subflow:/.test(nodeType)) {
-        var ns = RED.nodes.registry.getNodeSetForType(nodeType);
-        refreshNodeModule(ns.module);
-      }
+      var ns = RED.nodes.registry.getNodeSetForType(nodeType);
+      refreshNodeModule(ns.module);
     });
     RED.events.on('registry:node-set-added', function(ns) {
       refreshNodeModule(ns.module);
@@ -761,12 +757,10 @@ RED.palette.editor = (function() {
       }
     });
     RED.events.on('nodes:add', function(n) {
-      if (!/^subflow:/.test(n.type)) {
-        typesInUse[n.type] = (typesInUse[n.type]||0)+1;
-        if (typesInUse[n.type] === 1) {
-          var ns = RED.nodes.registry.getNodeSetForType(n.type);
-          refreshNodeModule(ns.module);
-        }
+      typesInUse[n.type] = (typesInUse[n.type]||0)+1;
+      if (typesInUse[n.type] === 1) {
+        var ns = RED.nodes.registry.getNodeSetForType(n.type);
+        refreshNodeModule(ns.module);
       }
     })
     RED.events.on('nodes:remove', function(n) {

@@ -46,7 +46,6 @@ RED.search = (function() {
   function indexWorkspace() {
     index = {};
     RED.nodes.eachWorkspace(indexNode);
-    RED.nodes.eachSubflow(indexNode);
     RED.nodes.eachConfig(indexNode);
     RED.nodes.eachNode(indexNode);
     keys = Object.keys(index);
@@ -174,7 +173,6 @@ RED.search = (function() {
           var icon_url = "arrow-in.png";
           if (node.type === 'tab') {
             colour = "#C0DEED";
-            icon_url = "subflow.png";
           } else if (def.category === 'config') {
             icon_url = "cog.png";
           } else if (node.type === 'unknown') {
@@ -194,12 +192,7 @@ RED.search = (function() {
           var contentDiv = $('<div>',{class:"red-ui-search-result-description"}).appendTo(div);
           if (node.z) {
             var workspace = RED.nodes.workspace(node.z);
-            if (!workspace) {
-              workspace = RED.nodes.subflow(node.z);
-              workspace = "subflow:"+workspace.name;
-            } else {
-              workspace = "flow:"+workspace.label;
-            }
+            workspace = "flow:"+workspace.label;
             $('<div>',{class:"red-ui-search-result-node-flow"}).html(workspace).appendTo(contentDiv);
           }
 

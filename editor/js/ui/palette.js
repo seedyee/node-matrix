@@ -1,7 +1,7 @@
 RED.palette = (function() {
 
   var exclusion = ['config','unknown','deprecated'];
-  var coreCategories = ['subflows', 'input', 'output', 'function', 'social', 'mobile', 'storage', 'analysis', 'advanced'];
+  var coreCategories = ['input', 'output', 'function', 'social', 'mobile', 'storage', 'analysis', 'advanced'];
 
   var categoryContainers = {};
 
@@ -191,11 +191,7 @@ RED.palette = (function() {
       $(d).click(function() {
         RED.view.focus();
         var helpText;
-        if (nt.indexOf("subflow:") === 0) {
-          helpText = marked(RED.nodes.subflow(nt.substring(8)).info||"");
-        } else {
-          helpText = $("script[data-help-name$='"+d.type+"']").html()||"";
-        }
+        helpText = $("script[data-help-name$='"+d.type+"']").html()||"";
         var help = '<div class="node-help">'+helpText+"</div>";
         RED.sidebar.info.set(help);
       });
@@ -283,13 +279,6 @@ RED.palette = (function() {
       });
 
       var nodeInfo = null;
-      if (def.category == "subflows") {
-        $(d).dblclick(function(e) {
-          RED.workspaces.show(nt.substring(8));
-          e.preventDefault();
-        });
-        nodeInfo = marked(def.info||"");
-      }
       setLabel(nt,$(d),label,nodeInfo);
 
       var categoryNode = $("#palette-container-"+category);
@@ -322,29 +311,8 @@ RED.palette = (function() {
     $("#palette_node_"+nodeTypeId).show();
   }
 
+  // todo remoe this subflow related function
   function refreshNodeTypes() {
-    RED.nodes.eachSubflow(function(sf) {
-      var paletteNode = $("#palette_node_subflow_"+sf.id.replace(".","_"));
-      var portInput = paletteNode.find(".palette_port_input");
-      var portOutput = paletteNode.find(".palette_port_output");
-
-      if (portInput.length === 0 && sf.in.length > 0) {
-        var portIn = document.createElement("div");
-        portIn.className = "palette_port palette_port_input";
-        paletteNode.append(portIn);
-      } else if (portInput.length !== 0 && sf.in.length === 0) {
-        portInput.remove();
-      }
-
-      if (portOutput.length === 0 && sf.out.length > 0) {
-        var portOut = document.createElement("div");
-        portOut.className = "palette_port palette_port_output";
-        paletteNode.append(portOut);
-      } else if (portOutput.length !== 0 && sf.out.length === 0) {
-        portOutput.remove();
-      }
-      setLabel(sf.type+":"+sf.id,paletteNode,sf.name,marked(sf.info||""));
-    });
   }
 
   function filterChange(val) {
