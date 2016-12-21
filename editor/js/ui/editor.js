@@ -3,7 +3,6 @@ RED.editor = (function() {
   var editStack = [];
   var editing_node = null;
   var editing_config_node = null;
-  var subflowEditor;
 
   var editTrayWidthCache = {};
 
@@ -21,57 +20,16 @@ RED.editor = (function() {
     var oldValue = node.valid;
     var oldChanged = node.changed;
     node.valid = true;
-    var subflow;
     var isValid;
     var hasChanged;
-    if (node.type.indexOf("subflow:")===0) {
-      subflow = RED.nodes.subflow(node.type.substring(8));
-      isValid = subflow.valid;
-      hasChanged = subflow.changed;
-      if (isValid === undefined) {
-        isValid = validateNode(subflow);
-        hasChanged = subflow.changed;
-      }
-      node.valid = isValid;
-      node.changed = node.changed || hasChanged;
-    } else if (node._def) {
+    if (node._def) {
       node.valid = validateNodeProperties(node, node._def.defaults, node);
       if (node._def._creds) {
         node.valid = node.valid && validateNodeProperties(node, node._def.credentials, node._def._creds);
       }
-    } else if (node.type == "subflow") {
-      var subflowNodes = RED.nodes.filterNodes({z:node.id});
-      for (var i=0;i<subflowNodes.length;i++) {
-        isValid = subflowNodes[i].valid;
-        hasChanged = subflowNodes[i].changed;
-        if (isValid === undefined) {
-          isValid = validateNode(subflowNodes[i]);
-          hasChanged = subflowNodes[i].changed;
-        }
-        node.valid = node.valid && isValid;
-        node.changed = node.changed || hasChanged;
-      }
-      var subflowInstances = RED.nodes.filterNodes({type:"subflow:"+node.id});
-      var modifiedTabs = {};
-      for (i=0;i<subflowInstances.length;i++) {
-        subflowInstances[i].valid = node.valid;
-        subflowInstances[i].changed = subflowInstances[i].changed || node.changed;
-        subflowInstances[i].dirty = true;
-        modifiedTabs[subflowInstances[i].z] = true;
-      }
-      Object.keys(modifiedTabs).forEach(function(id) {
-        var subflow = RED.nodes.subflow(id);
-        if (subflow) {
-          validateNode(subflow);
-        }
-      });
     }
     if (oldValue !== node.valid || oldChanged !== node.changed) {
       node.dirty = true;
-      subflow = RED.nodes.subflow(node.z);
-      if (subflow) {
-        validateNode(subflow);
-      }
     }
     return node.valid;
   }
@@ -471,25 +429,18 @@ RED.editor = (function() {
     for (var i=0;i<editStack.length;i++) {
       var node = editStack[i];
       var label = node.type;
-      if (node.type === 'subflow') {
-        label = RED._("subflow.editSubflow",{name:node.name})
-      } else if (node.type.indexOf("subflow:")===0) {
-        var subflow = RED.nodes.subflow(node.type.substring(8));
-        label = RED._("subflow.editSubflow",{name:subflow.name})
-      } else {
-        if (typeof node._def.paletteLabel !== "undefined") {
-          try {
-            label = (typeof node._def.paletteLabel === "function" ? node._def.paletteLabel.call(node._def) : node._def.paletteLabel)||"";
-          } catch(err) {
-            console.log("Definition error: "+node.type+".paletteLabel",err);
-          }
+      if (typeof node._def.paletteLabel !== "undefined") {
+        try {
+          label = (typeof node._def.paletteLabel === "function" ? node._def.paletteLabel.call(node._def) : node._def.paletteLabel)||"";
+        } catch(err) {
+          console.log("Definition error: "+node.type+".paletteLabel",err);
         }
-        if (i === editStack.length-1) {
-          if (RED.nodes.node(node.id)) {
-            label = RED._("editor.editNode",{type:label});
-          } else {
-            label = RED._("editor.addNewConfig",{type:label});
-          }
+      }
+      if (i === editStack.length-1) {
+        if (RED.nodes.node(node.id)) {
+          label = RED._("editor.editNode",{type:label});
+        } else {
+          label = RED._("editor.addNewConfig",{type:label});
         }
       }
       title += '<li>'+label+'</li>';
@@ -503,9 +454,6 @@ RED.editor = (function() {
     editStack.push(node);
     RED.view.state(RED.state.EDITING);
     var type = node.type;
-    if (node.type.substring(0,8) == "subflow:") {
-      type = "subflow";
-    }
     var trayOptions = {
       title: getEditStackTitle(),
       buttons: [
@@ -645,22 +593,6 @@ RED.editor = (function() {
               editing_node.changed = true;
               RED.nodes.dirty(true);
 
-              var activeSubflow = RED.nodes.subflow(RED.workspaces.active());
-              var subflowInstances = null;
-              if (activeSubflow) {
-                subflowInstances = [];
-                RED.nodes.eachNode(function(n) {
-                  if (n.type == "subflow:"+RED.workspaces.active()) {
-                    subflowInstances.push({
-                      id:n.id,
-                      changed:n.changed
-                    });
-                    n.changed = true;
-                    n.dirty = true;
-                    updateNodeProperties(n);
-                  }
-                });
-              }
               var historyEvent = {
                 t:'edit',
                 node:editing_node,
@@ -669,11 +601,6 @@ RED.editor = (function() {
                 dirty:wasDirty,
                 changed:wasChanged
               };
-              if (subflowInstances) {
-                historyEvent.subflow = {
-                  instances:subflowInstances
-                }
-              }
               RED.history.push(historyEvent);
             }
             editing_node.dirty = true;
@@ -749,18 +676,6 @@ RED.editor = (function() {
       trayOptions.width = editTrayWidthCache[type];
     }
 
-    if (type === 'subflow') {
-      var id = editing_node.type.substring(8);
-      trayOptions.buttons.unshift({
-        class: 'leftButton',
-        text: RED._("subflow.edit"),
-        click: function() {
-          RED.workspaces.show(id);
-          $("#node-dialog-ok").click();
-        }
-      });
-    }
-
     RED.tray.show(trayOptions);
   }
   /**
@@ -781,10 +696,6 @@ RED.editor = (function() {
       ns = node_def.set.id;
     }
     var configNodeScope = ""; // default to global
-    var activeSubflow = RED.nodes.subflow(RED.workspaces.active());
-    if (activeSubflow) {
-      configNodeScope = activeSubflow.id;
-    }
     if (editing_config_node == null) {
       editing_config_node = {
         id: RED.nodes.id(),
@@ -864,28 +775,6 @@ RED.editor = (function() {
           }
           tabSelect.append('<option value="'+ws.id+'"'+(ws.id==editing_config_node.z?" selected":"")+'>'+workspaceLabel+'</option>');
         });
-        tabSelect.append('<option disabled data-i18n="sidebar.config.subflows"></option>');
-        RED.nodes.eachSubflow(function(ws) {
-          var workspaceLabel = ws.name;
-          if (nodeUserFlows[ws.id]) {
-            workspaceLabel = "* "+workspaceLabel;
-          }
-          tabSelect.append('<option value="'+ws.id+'"'+(ws.id==editing_config_node.z?" selected":"")+'>'+workspaceLabel+'</option>');
-        });
-        if (flowCount > 0) {
-          tabSelect.on('change',function() {
-            var newScope = $(this).val();
-            if (newScope === '') {
-              // global scope - everyone can use it
-              $("#node-config-dialog-scope-warning").hide();
-            } else if (!nodeUserFlows[newScope] || flowCount > 1) {
-              // a user will loose access to it
-              $("#node-config-dialog-scope-warning").show();
-            } else {
-              $("#node-config-dialog-scope-warning").hide();
-            }
-          });
-        }
         tabSelect.i18n();
 
         dialogForm.i18n();
@@ -1136,9 +1025,6 @@ RED.editor = (function() {
         select.children().remove();
 
         var activeWorkspace = RED.nodes.workspace(RED.workspaces.active());
-        if (!activeWorkspace) {
-          activeWorkspace = RED.nodes.subflow(RED.workspaces.active());
-        }
 
         var configNodes = [];
 
@@ -1180,158 +1066,6 @@ RED.editor = (function() {
     }
   }
 
-  function showEditSubflowDialog(subflow) {
-    var editing_node = subflow;
-    editStack.push(subflow);
-    RED.view.state(RED.state.EDITING);
-    var subflowEditor;
-
-    var trayOptions = {
-      title: getEditStackTitle(),
-      buttons: [
-        {
-          id: "node-dialog-cancel",
-          text: RED._("common.label.cancel"),
-          click: function() {
-            RED.tray.close();
-          }
-        },
-        {
-          id: "node-dialog-ok",
-          class: "primary",
-          text: RED._("common.label.done"),
-          click: function() {
-            var i;
-            var changes = {};
-            var changed = false;
-            var wasDirty = RED.nodes.dirty();
-
-            var newName = $("#subflow-input-name").val();
-
-            if (newName != editing_node.name) {
-              changes['name'] = editing_node.name;
-              editing_node.name = newName;
-              changed = true;
-            }
-
-            var newDescription = subflowEditor.getValue();
-
-            if (newDescription != editing_node.info) {
-              changes['info'] = editing_node.info;
-              editing_node.info = newDescription;
-              changed = true;
-            }
-
-            RED.palette.refresh();
-
-            if (changed) {
-              var subflowInstances = [];
-              RED.nodes.eachNode(function(n) {
-                if (n.type == "subflow:"+editing_node.id) {
-                  subflowInstances.push({
-                    id:n.id,
-                    changed:n.changed
-                  })
-                  n.changed = true;
-                  n.dirty = true;
-                  updateNodeProperties(n);
-                }
-              });
-              var wasChanged = editing_node.changed;
-              editing_node.changed = true;
-              RED.nodes.dirty(true);
-              var historyEvent = {
-                t:'edit',
-                node:editing_node,
-                changes:changes,
-                dirty:wasDirty,
-                changed:wasChanged,
-                subflow: {
-                  instances:subflowInstances
-                }
-              };
-
-              RED.history.push(historyEvent);
-            }
-            editing_node.dirty = true;
-            RED.tray.close();
-          }
-        }
-      ],
-      resize: function() {
-        var rows = $("#dialog-form>div:not(.node-text-editor-row)");
-        var editorRow = $("#dialog-form>div.node-text-editor-row");
-        var height = $("#dialog-form").height();
-        for (var i=0;i<rows.size();i++) {
-          height -= $(rows[i]).outerHeight(true);
-        }
-        height -= (parseInt($("#dialog-form").css("marginTop"))+parseInt($("#dialog-form").css("marginBottom")));
-        $(".node-text-editor").css("height",height+"px");
-        subflowEditor.resize();
-      },
-      open: function(tray) {
-        if (editing_node) {
-          RED.sidebar.info.refresh(editing_node);
-        }
-        var trayBody = tray.find('.editor-tray-body');
-        var dialogForm = $('<form id="dialog-form" class="form-horizontal"></form>').appendTo(trayBody);
-        dialogForm.html($("script[data-template-name='subflow-template']").html());
-        var ns = "node-red";
-        dialogForm.find('[data-i18n]').each(function() {
-          var current = $(this).attr("data-i18n");
-          var keys = current.split(";");
-          for (var i=0;i<keys.length;i++) {
-            var key = keys[i];
-            if (key.indexOf(":") === -1) {
-              var prefix = "";
-              if (key.indexOf("[")===0) {
-                var parts = key.split("]");
-                prefix = parts[0]+"]";
-                key = parts[1];
-              }
-              keys[i] = prefix+ns+":"+key;
-            }
-          }
-          $(this).attr("data-i18n",keys.join(";"));
-        });
-        $('<input type="text" style="display: none;" />').prependTo(dialogForm);
-
-        dialogForm.submit(function(e) { e.preventDefault();});
-        subflowEditor = RED.editor.createEditor({
-          id: 'subflow-input-info-editor',
-          mode: 'ace/mode/markdown',
-          value: ""
-        });
-
-        $("#subflow-input-name").val(subflow.name);
-        RED.text.bidi.prepareInput($("#subflow-input-name"));
-        subflowEditor.getSession().setValue(subflow.info||"",-1);
-        var userCount = 0;
-        var subflowType = "subflow:"+editing_node.id;
-
-        RED.nodes.eachNode(function(n) {
-          if (n.type === subflowType) {
-            userCount++;
-          }
-        });
-        $("#subflow-dialog-user-count").html(RED._("subflow.subflowInstances", {count:userCount})).show();
-        dialogForm.i18n();
-      },
-      close: function() {
-        if (RED.view.state() != RED.state.IMPORT_DRAGGING) {
-          RED.view.state(RED.state.DEFAULT);
-        }
-        RED.sidebar.info.refresh(editing_node);
-        RED.workspaces.refresh();
-        editStack.pop();
-        editing_node = null;
-      },
-      show: function() {
-      }
-    }
-    RED.tray.show(trayOptions);
-  }
-
   return {
     init: function() {
       RED.tray.init();
@@ -1347,7 +1081,6 @@ RED.editor = (function() {
     },
     edit: showEditDialog,
     editConfig: showEditConfigNodeDialog,
-    editSubflow: showEditSubflowDialog,
     validateNode: validateNode,
     updateNodeProperties: updateNodeProperties, // TODO: only exposed for edit-undo
 
