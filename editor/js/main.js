@@ -134,11 +134,6 @@ var RED = (function() {
     }
 
     menuOptions.push({id:'menu-item-keyboard-shortcuts',label:RED._('menu.label.keyboardShortcuts'),onselect:RED.keyboard.showHelp})
-    menuOptions.push({id:'menu-item-help',
-                      label: RED.settings.theme('menu.menu-item-help.label','Node-RED website'),
-                      href: RED.settings.theme('menu.menu-item-help.url','http://nodered.org/docs')
-                     })
-
     RED.menu.init({id:'btn-sidemenu',options: menuOptions})
 
     RED.user.init()
