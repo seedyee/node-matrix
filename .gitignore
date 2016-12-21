@@ -19,3 +19,4 @@ locales/zz-ZZ
 nodes/core/locales/zz-ZZ
 npm-debug.log
 data/
+.idea/
